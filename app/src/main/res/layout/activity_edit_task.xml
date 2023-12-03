@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activity.EditTaskActivity">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/toolbar_background_color"
+        android:paddingLeft="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Editor"
+            android:id="@+id/textview_title"
+            android:gravity="center_vertical"
+            android:textColor="@color/white"
+            android:textSize="30sp" />
+        <ImageButton
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="10dp"
+            android:layout_centerVertical="true"
+
+            android:background="@drawable/ic_baseline_more_vert_24"
+            android:layout_alignParentRight="true"
+            android:id="@+id/button_menu"
+            android:scaleType="centerInside"/>
+    </RelativeLayout>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_weight="15"
+        android:maxLines="65536"
+        android:gravity="start"
+        android:id="@+id/edittext"
+        android:background="@color/white"
+        android:padding="15dp"
+        android:layout_height="0dp" />
+
+
+</LinearLayout>

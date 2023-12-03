@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:longClickable="true">
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="7"
+        android:paddingTop="5dp">
+
+        <TextView
+            android:id="@+id/textview_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:text="标题"
+            android:textColor="@color/black"
+            android:textSize="25sp"
+            tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/textview_deadline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textview_title"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            android:maxLines="1"
+            android:text="截止日期:"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/textview_deadline"
+            android:background="#850000FF" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <com.hnidesu.taskmanager.ui.CheckBoxEx
+            android:layout_width="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content"
+            android:id="@+id/checkbox_isfinish"
+            android:layout_gravity="center" />
+
+    </RelativeLayout>
+</LinearLayout>

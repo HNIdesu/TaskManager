@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="Editor"
+            android:text="@string/title"
             android:id="@+id/textview_title"
             android:gravity="center_vertical"
             android:textColor="@color/white"
@@ -29,13 +29,18 @@
             android:layout_alignParentRight="true"
             android:id="@+id/button_menu" />
     </RelativeLayout>
-    <EditText
+    <com.hnidesu.taskmanager.ui.EditTextEx
         android:layout_width="match_parent"
         android:maxLines="65536"
         android:gravity="start"
         android:id="@+id/edittext"
         android:background="@color/white"
-        android:padding="15dp"
+        android:padding="12dp"
+        android:singleLine="false"
+        android:textSize="16sp"
+        android:scrollbars="vertical"
+        android:imeOptions="actionNone"
+        android:hint="@string/detailed_information"
         android:layout_height="match_parent" />
 
 

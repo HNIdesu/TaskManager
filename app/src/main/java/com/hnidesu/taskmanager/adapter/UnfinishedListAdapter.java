@@ -46,7 +46,7 @@ public class UnfinishedListAdapter extends RecyclerView.Adapter<SingleTaskViewHo
     public void onBindViewHolder(@NonNull SingleTaskViewHolder holder, int position) {
         Item item=itemList.get(position);
         holder.item=item;
-        holder.finishCheckBox.setPopupWindiwContainer(UnfinishedTaskFragment.getInstance().getView());
+        holder.finishCheckBox.setPopupWindowContainer(UnfinishedTaskFragment.getInstance().getView());
         holder.finishCheckBox.setOnCheckChangeListener(new CheckBoxEx.OnCheckChangeListener() {
             @Override
             public void onChecked() {

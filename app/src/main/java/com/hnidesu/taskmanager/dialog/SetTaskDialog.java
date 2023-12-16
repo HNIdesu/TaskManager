@@ -83,7 +83,7 @@ public class SetTaskDialog extends PopupWindow {
 
     }
 
-    public void popuop(View parent){
+    public void popup(View parent){
         this.showAtLocation(parent, Gravity.CENTER,0,0);
     }
 

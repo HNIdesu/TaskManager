@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/option_save"
-        android:title="保存"/>
+        android:title="@string/save"/>
     <item
-        android:id="@+id/option_exit"
-        android:title="退出"/>
+        android:id="@+id/option_close"
+        android:title="@string/close"/>
 </menu>

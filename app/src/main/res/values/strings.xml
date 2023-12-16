@@ -26,4 +26,8 @@
     <string name="notification_count_of_ending_task">%d个任务即将截止</string>
     <string name="title">标题</string>
     <string name="save_data_failed">保存数据失败</string>
+    <string name="request_content_change">检测到内容更改，是否保存更改?</string>
+    <string name="detailed_information">详细信息</string>
+    <string name="save">保存</string>
+    <string name="close">关闭</string>
 </resources>

@@ -53,7 +53,7 @@ public class AllTaskListAdapter extends RecyclerView.Adapter<SingleTaskViewHolde
     public void onBindViewHolder(@NonNull SingleTaskViewHolder holder, int position) {
         Item item = itemList.get(position);
         holder.item=item;
-        holder.finishCheckBox.setPopupWindiwContainer(AllTaskFragment.getInstance().getView());
+        holder.finishCheckBox.setPopupWindowContainer(AllTaskFragment.getInstance().getView());
         holder.finishCheckBox.setOnCheckChangeListener(new CheckBoxEx.OnCheckChangeListener() {
             @Override
             public void onChecked() {

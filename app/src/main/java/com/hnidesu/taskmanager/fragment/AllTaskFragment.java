@@ -96,7 +96,7 @@ public class AllTaskFragment extends Fragment implements Observer {
 
                 });
                 dialog.setDate(new Date(System.currentTimeMillis()));
-                dialog.popuop(itemView);
+                dialog.popup(itemView);
 
             }
         });
@@ -136,7 +136,7 @@ public class AllTaskFragment extends Fragment implements Observer {
                 Date date= recyclerViewAdapter.getSelectedItem().deadLine;
                 dialog.setDate(date);
                 dialog.setTitle(recyclerViewAdapter.getSelectedItem().title);
-                dialog.popuop(itemView);
+                dialog.popup(itemView);
                 return true;
 
         }

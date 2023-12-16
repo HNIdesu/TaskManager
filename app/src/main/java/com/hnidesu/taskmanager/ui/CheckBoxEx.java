@@ -11,7 +11,7 @@ import androidx.appcompat.widget.AppCompatCheckBox;
 import com.hnidesu.taskmanager.dialog.SimplePopupWindow;
 
 public class CheckBoxEx extends AppCompatCheckBox {
-    private View popupWindiwContainer;
+    private View popupWindowContainer;
 
     public interface OnCheckChangeListener{
         void onChecked();
@@ -24,8 +24,8 @@ public class CheckBoxEx extends AppCompatCheckBox {
     }
 
     private boolean isUserClick;
-    public void setPopupWindiwContainer(View popupWindiwContainer) {
-        this.popupWindiwContainer = popupWindiwContainer;
+    public void setPopupWindowContainer(View popupWindowContainer) {
+        this.popupWindowContainer = popupWindowContainer;
         this.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -40,8 +40,9 @@ public class CheckBoxEx extends AppCompatCheckBox {
                 if(!isUserClick)
                     return;
                 isUserClick=false;
+                SimplePopupWindow popupWindow;
                 if(isChecked){
-                    SimplePopupWindow popupWindow=new SimplePopupWindow(getContext(), "是否确定已完成", new SimplePopupWindow.OnDialogResultListener() {
+                    popupWindow = new SimplePopupWindow(getContext(), "是否确定已完成", new SimplePopupWindow.OnDialogResultListener() {
                         @Override
                         public void onCancel(SimplePopupWindow dialog) {
                             CheckBoxEx.this.setChecked(false);
@@ -49,14 +50,13 @@ public class CheckBoxEx extends AppCompatCheckBox {
 
                         @Override
                         public void onOk(SimplePopupWindow dialog) {
-                            if(onCheckChangeListener!=null)
+                            if (onCheckChangeListener != null)
                                 onCheckChangeListener.onChecked();
                         }
                     });
-                    popupWindow.popup(popupWindiwContainer);
                 }else{
 
-                    SimplePopupWindow popupWindow=new SimplePopupWindow(getContext(), "是否确定取消已完成", new SimplePopupWindow.OnDialogResultListener() {
+                    popupWindow = new SimplePopupWindow(getContext(), "是否确定取消已完成", new SimplePopupWindow.OnDialogResultListener() {
                         @Override
                         public void onCancel(SimplePopupWindow dialog) {
                             CheckBoxEx.this.setChecked(true);
@@ -64,13 +64,13 @@ public class CheckBoxEx extends AppCompatCheckBox {
 
                         @Override
                         public void onOk(SimplePopupWindow dialog) {
-                            if(onCheckChangeListener!=null)
+                            if (onCheckChangeListener != null)
                                 onCheckChangeListener.onNotChecked();
                         }
                     });
-                    popupWindow.popup(popupWindiwContainer);
 
                 }
+                popupWindow.popup(popupWindowContainer);
             }
         });
 

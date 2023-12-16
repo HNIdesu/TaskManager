@@ -1,16 +1,17 @@
 package com.hnidesu.taskmanager.adapter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class ViewPagerAdapter extends FragmentPagerAdapter {
 
-    private ArrayList<Fragment> fragmentArrayList=new ArrayList<>();
-
+    private LinkedList<Fragment> mFragmentList =new LinkedList<>();
+    private LinkedList<String> mFragmentTitles =new LinkedList<>();
     public ViewPagerAdapter(@NonNull FragmentManager fm) {
         super(fm);
     }
@@ -19,14 +20,21 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     @NonNull
     @Override
     public Fragment getItem(int position) {
-        return fragmentArrayList.get(position);
+        return mFragmentList.get(position);
     }
-    public void addFragment(Fragment fragment){
-        this.fragmentArrayList.add(fragment);
+    public void addFragment(Fragment fragment,String title){
+        mFragmentTitles.addLast(title);
+        mFragmentList.addLast(fragment);
+    }
+
+    @Nullable
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return mFragmentTitles.get(position);
     }
 
     @Override
     public int getCount() {
-        return fragmentArrayList.size();
+        return mFragmentList.size();
     }
 }

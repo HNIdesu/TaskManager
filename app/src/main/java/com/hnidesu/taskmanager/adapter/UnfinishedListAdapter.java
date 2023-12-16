@@ -24,13 +24,13 @@ import com.hnidesu.taskmanager.viewholder.SingleTaskViewHolder;
 import org.json.JSONException;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class UnfinishedListAdapter extends RecyclerView.Adapter<SingleTaskViewHolder>{
-    private ArrayList<Item> itemList;
+    private List<Item> itemList;
     private SingleTaskViewHolder selectedVH;
-    public void setItemList(ArrayList<Item> itemList) {
+    public void setItemList(List<Item> itemList) {
         this.itemList = itemList;
         notifyDataSetChanged();
     }

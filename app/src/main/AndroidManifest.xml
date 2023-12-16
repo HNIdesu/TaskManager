@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -17,11 +16,10 @@
         tools:targetApi="34">
         <service
             android:name=".CheckDeadlineService"
-            android:enabled="true"></service>
+            android:enabled="true" />
 
         <activity
             android:name=".activity.EditTaskActivity"
-            android:exported="false"
             android:windowSoftInputMode="adjustUnspecified">
             <meta-data
                 android:name="android.app.lib_name"
@@ -42,7 +40,6 @@
         </activity>
         <activity
             android:name=".activity.MainActivity"
-            android:exported="false"
             android:launchMode="singleTop"
             android:windowSoftInputMode="stateHidden">
             <meta-data

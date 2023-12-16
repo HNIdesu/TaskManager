@@ -75,7 +75,7 @@ public class AllTaskFragment extends Fragment implements Observer {
                         item.lastModifiedTime=curDate;
                         item.content="";
                         item.isFinished=false;
-                        DBUtil.getInstance().addTask(item);
+                        DBUtil.getInstance().createTask(item);
                         ToastUtil.ToastShort("添加成功");
 
                         try {

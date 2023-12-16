@@ -15,8 +15,8 @@
             android:id="@+id/textview_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:text="标题"
+            android:layout_marginLeft="14dp"
+            android:text="@string/title"
             android:textColor="@color/black"
             android:textSize="25sp"
             tools:ignore="MissingConstraints" />
@@ -29,12 +29,12 @@
             android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
             android:maxLines="1"
-            android:text="截止日期:"
+            android:text="@string/deadline"
             android:textSize="12sp" />
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="2dp"
             android:layout_below="@id/textview_deadline"
             android:background="#850000FF" />
     </RelativeLayout>

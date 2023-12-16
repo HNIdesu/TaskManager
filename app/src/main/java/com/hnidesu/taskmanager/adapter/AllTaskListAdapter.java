@@ -21,7 +21,7 @@ import com.hnidesu.taskmanager.viewholder.SingleTaskViewHolder;
 import org.json.JSONException;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.List;
 
 public class AllTaskListAdapter extends RecyclerView.Adapter<SingleTaskViewHolder> {
 
@@ -30,8 +30,8 @@ public class AllTaskListAdapter extends RecyclerView.Adapter<SingleTaskViewHolde
         return selectedVH.item;
     }
 
-    private ArrayList<Item> itemList;
-    public void setItemList(ArrayList<Item> itemList) {
+    private List<Item> itemList;
+    public void setItemList(List<Item> itemList) {
         this.itemList = itemList;
         notifyDataSetChanged();
     }

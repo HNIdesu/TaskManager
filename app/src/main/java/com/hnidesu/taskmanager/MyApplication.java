@@ -11,7 +11,7 @@ import com.hnidesu.taskmanager.utility.DBUtil;
 import com.hnidesu.taskmanager.utility.NotificationUtil;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 
 public class MyApplication extends Application {
@@ -23,10 +23,10 @@ public class MyApplication extends Application {
     }
 
     void CheckTasks(){
-        ArrayList<String> tasks= DBUtil.getInstance().getEndingTasks(1000*5*60);
+        List<String> tasks= DBUtil.getInstance().getEndingTasks(1000*5*60);
         Intent intent=new Intent(getApplicationContext(), MainActivity.class);
         if(tasks.size()>0){
-            NotificationUtil.getInstance().sendUrgent(String.format("%d个任务即将截止",tasks.size()),intent);
+            NotificationUtil.getInstance().sendUrgent(String.format(getString(R.string.notification_count_of_ending_task),tasks.size()),intent);
         }
     }
 

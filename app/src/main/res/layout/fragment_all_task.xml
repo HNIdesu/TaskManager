@@ -9,35 +9,33 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="@dimen/toolbar_height"
         android:background="@color/toolbar_background_color"
-        android:paddingLeft="50dp">
+        android:paddingStart="15dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="All Tasks"
+            android:text="@string/all_tasks"
             android:gravity="center_vertical"
             android:textColor="@color/white"
-            android:textSize="30sp" />
+            android:textSize="@dimen/toolbar_title_font_size" />
         <ImageButton
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
             android:layout_centerVertical="true"
-            android:background="@drawable/ic_baseline_add_circle_outline_24"
+            android:src="@drawable/ic_baseline_add_circle_outline_24"
             android:layout_alignParentRight="true"
             android:id="@+id/button_add_task"
-            android:scaleType="centerInside"/>
+            android:background="@color/transparent"/>
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_weight="15"
         android:id="@+id/recyclerview"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:layout_height="0dp"/>
+        android:layout_height="match_parent"/>
 
 
 </LinearLayout>

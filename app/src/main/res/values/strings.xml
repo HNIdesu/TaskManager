@@ -6,4 +6,24 @@
     <string name="last_modified_time">修改时间</string>
     <string name="deadline">截止日期</string>
     <string name="notification_title_deadline">任务截止通知</string>
+    <string name="unfinished">未完成</string>
+    <string name="all">全部</string>
+    <string name="other">其他</string>
+    <string name="log">日志</string>
+    <string name="custom">自定义</string>
+    <string name="setting">设置</string>
+    <string name="import_data">导入数据</string>
+    <string name="export_data">导出数据</string>
+    <string name="all_tasks">全部任务</string>
+    <string name="unfinished_tasks">未完成任务</string>
+    <string name="invalie_database_type">无效数据库格式</string>
+    <string name="override">覆盖</string>
+    <string name="append">添加</string>
+    <string name="notice_import_data">共发现%d条数据，请选择导入方式</string>
+    <string name="import_failed">导入失败</string>
+    <string name="import_succeed">导入成功</string>
+    <string name="cancelled">已取消</string>
+    <string name="notification_count_of_ending_task">%d个任务即将截止</string>
+    <string name="title">标题</string>
+    <string name="save_data_failed">保存数据失败</string>
 </resources>

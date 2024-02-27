@@ -40,7 +40,6 @@
         </activity>
         <activity
             android:name=".activity.MainActivity"
-            android:launchMode="singleTop"
             android:windowSoftInputMode="stateAlwaysHidden">
             <meta-data
                 android:name="android.app.lib_name"

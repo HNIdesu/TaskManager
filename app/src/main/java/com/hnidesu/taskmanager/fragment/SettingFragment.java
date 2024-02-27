@@ -47,24 +47,18 @@ public class SettingFragment extends Fragment {
         btnExportData=rootView.findViewById(R.id.btn_export_data);
         btnImportData=rootView.findViewById(R.id.btn_import_data);
 
-        btnExportData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent=new Intent();
-                intent.setAction(Intent.ACTION_CREATE_DOCUMENT);
-                intent.setType("*/*");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.putExtra(Intent.EXTRA_TITLE, "database_"+BuildConfig.APPLICATION_ID+".db");
-                startActivityForResult(intent,4096);
-            }
+        btnExportData.setOnClickListener(view -> {
+            Intent intent=new Intent();
+            intent.setAction(Intent.ACTION_CREATE_DOCUMENT);
+            intent.setType("*/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.putExtra(Intent.EXTRA_TITLE, "database_"+BuildConfig.APPLICATION_ID+".db");
+            startActivityForResult(intent,4096);
         });
-        btnImportData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent=new Intent();
-                intent.setAction(Intent.ACTION_PICK);
-                startActivityForResult(intent,4097);
-            }
+        btnImportData.setOnClickListener(view -> {
+            Intent intent=new Intent();
+            intent.setAction(Intent.ACTION_PICK);
+            startActivityForResult(intent,4097);
         });
         return rootView;
 

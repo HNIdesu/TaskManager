@@ -1,5 +1,6 @@
 package com.hnidesu.taskmanager.adapter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -14,14 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.hnidesu.taskmanager.R;
 import com.hnidesu.taskmanager.activity.EditTaskActivity;
 import com.hnidesu.taskmanager.component.Item;
-import com.hnidesu.taskmanager.fragment.AllTaskFragment;
-import com.hnidesu.taskmanager.fragment.UnfinishedTaskFragment;
 import com.hnidesu.taskmanager.ui.CheckBoxEx;
 import com.hnidesu.taskmanager.utility.DBUtil;
-import com.hnidesu.taskmanager.utility.LogUtil;
 import com.hnidesu.taskmanager.viewholder.SingleTaskViewHolder;
-
-import org.json.JSONException;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,16 +25,20 @@ import java.util.List;
 
 public class UnfinishedListAdapter extends RecyclerView.Adapter<SingleTaskViewHolder>{
     private List<Item> itemList;
-    private SingleTaskViewHolder selectedVH;
+    private Context mContext;
+
     public void setItemList(List<Item> itemList) {
         this.itemList = itemList;
         notifyDataSetChanged();
     }
 
+    public UnfinishedListAdapter(Context ctx){
+        mContext=ctx;
+    }
     @NonNull
     @Override
     public SingleTaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View root= LayoutInflater.from(UnfinishedTaskFragment.getInstance().getContext()).inflate(R.layout.single_task,null);
+        View root= LayoutInflater.from(mContext).inflate(R.layout.single_task,parent,false);
         return new SingleTaskViewHolder(root);
     }
 
@@ -46,7 +46,6 @@ public class UnfinishedListAdapter extends RecyclerView.Adapter<SingleTaskViewHo
     public void onBindViewHolder(@NonNull SingleTaskViewHolder holder, int position) {
         Item item=itemList.get(position);
         holder.item=item;
-        holder.finishCheckBox.setPopupWindowContainer(UnfinishedTaskFragment.getInstance().getView());
         holder.finishCheckBox.setOnCheckChangeListener(new CheckBoxEx.OnCheckChangeListener() {
             @Override
             public void onChecked() {
@@ -60,17 +59,11 @@ public class UnfinishedListAdapter extends RecyclerView.Adapter<SingleTaskViewHo
                 DBUtil.getInstance().updateTask(item);
             }
         });
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent intent = new Intent(AllTaskFragment.getInstance().getContext(), EditTaskActivity.class);
-                    intent.putExtra("task", item.toJson());
-                    AllTaskFragment.getInstance().startActivity(intent);
-                } catch (JSONException e) {
-                    LogUtil.Error("打开编辑器失败", e);
-                }
-            }
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, EditTaskActivity.class);
+            intent.putExtra("task", item.toBundle());
+            mContext.startActivity(intent);
+
         });
         holder.titleView.setText(item.title);
         Date deadline=item.deadLine;
@@ -97,13 +90,7 @@ public class UnfinishedListAdapter extends RecyclerView.Adapter<SingleTaskViewHo
         holder.deadlineView.setText(toShow);
         holder.finishCheckBox.setChecked(item.isFinished);
 
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                selectedVH = holder;
-                return false;
-            }
-        });
+        holder.itemView.setOnLongClickListener(v -> false);
     }
 
     @Override

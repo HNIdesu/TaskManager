@@ -17,19 +17,7 @@ import com.hnidesu.taskmanager.utility.DBUtil;
 
 
 public class UnfinishedTaskFragment extends Fragment implements Observer {
-    private UnfinishedListAdapter recyclerViewAdapter;
-
-    private UnfinishedTaskFragment() {
-
-    }
-
-    private static UnfinishedTaskFragment instance;
-
-    public static UnfinishedTaskFragment getInstance() {
-        if(instance==null)
-            instance=new UnfinishedTaskFragment();
-        return instance;
-    }
+    private UnfinishedListAdapter mRecyclerViewAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,26 +28,22 @@ public class UnfinishedTaskFragment extends Fragment implements Observer {
     @Override
     public void onResume() {
         super.onResume();
-        recyclerViewAdapter.setItemList(DBUtil.getInstance().getUnfinishedTasks(false));
+        mRecyclerViewAdapter.setItemList(DBUtil.getInstance().getUnfinishedTasks(false));
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        recyclerViewAdapter=new UnfinishedListAdapter();
+        mRecyclerViewAdapter =new UnfinishedListAdapter(getContext());
         View root= inflater.inflate(R.layout.fragment_unfinished_task, container, false);
-        root.findViewById(R.id.button_sort).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new SortTypePopUpMenu(UnfinishedTaskFragment.this.getContext(), view).show();
-            }
-        });
+        root.findViewById(R.id.button_sort).setOnClickListener(view -> new SortTypePopUpMenu(UnfinishedTaskFragment.this.getContext(), view).show());
         RecyclerView recyclerView= root.findViewById(R.id.recyclerview);
-        recyclerView.setAdapter(recyclerViewAdapter);
+        recyclerView.setAdapter(mRecyclerViewAdapter);
         return root;
     }
 
     @Override
     public void update(Observable target) {
-        recyclerViewAdapter.setItemList(DBUtil.getInstance().getUnfinishedTasks(false));
+        if(mRecyclerViewAdapter!=null)
+            mRecyclerViewAdapter.setItemList(DBUtil.getInstance().getUnfinishedTasks(false));
     }
 }

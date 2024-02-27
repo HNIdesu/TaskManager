@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,32 +23,14 @@ import com.hnidesu.taskmanager.component.Observable;
 import com.hnidesu.taskmanager.component.Observer;
 import com.hnidesu.taskmanager.dialog.SetTaskDialog;
 import com.hnidesu.taskmanager.utility.DBUtil;
-import com.hnidesu.taskmanager.utility.LogUtil;
 import com.hnidesu.taskmanager.utility.ToastUtil;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
-
-
 
 public class AllTaskFragment extends Fragment implements Observer {
 
-    private AllTaskListAdapter recyclerViewAdapter;
+    private AllTaskListAdapter mRecyclerViewAdapter;
     private View itemView;
-
-
-    private AllTaskFragment() {
-
-    }
-
-    private static AllTaskFragment instance;
-
-    public static AllTaskFragment getInstance() {
-        if(instance==null)
-            instance=new AllTaskFragment();
-        return instance;
-    }
-
 
 
     @Override
@@ -58,47 +41,37 @@ public class AllTaskFragment extends Fragment implements Observer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         itemView =inflater.inflate(R.layout.fragment_all_task, container, false);
-        recyclerViewAdapter=new AllTaskListAdapter();
+        mRecyclerViewAdapter=new AllTaskListAdapter(getContext());
         RecyclerView rv= itemView.findViewById(R.id.recyclerview);
-        rv.setAdapter(recyclerViewAdapter);
-        itemView.findViewById(R.id.button_add_task).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SetTaskDialog dialog=new SetTaskDialog(getContext(), R.layout.window_set_task, new SetTaskDialog.OnFinishListener() {
-                    @Override
-                    public void onSet(SetTaskDialog dialog) {
-                        Item item=new Item();
-                        item.deadLine=dialog.getDate();
-                        item.title=dialog.getTitle();
-                        Date curDate=new Date(System.currentTimeMillis());
-                        item.createTime=curDate;
-                        item.lastModifiedTime=curDate;
-                        item.content="";
-                        item.isFinished=false;
-                        DBUtil.getInstance().createTask(item);
-                        ToastUtil.ToastShort("添加成功");
+        rv.setAdapter(mRecyclerViewAdapter);
+        itemView.findViewById(R.id.button_add_task).setOnClickListener(v -> {
+            SetTaskDialog dialog=new SetTaskDialog(getContext(), R.layout.window_set_task, new SetTaskDialog.OnFinishListener() {
+                @Override
+                public void onSet(SetTaskDialog dialog) {
+                    Item item=new Item();
+                    item.deadLine=dialog.getDate();
+                    item.title=dialog.getTitle();
+                    Date curDate=new Date(System.currentTimeMillis());
+                    item.createTime=curDate;
+                    item.lastModifiedTime=curDate;
+                    item.content="";
+                    item.isFinished=false;
+                    DBUtil.getInstance().createTask(item);
+                    ToastUtil.ToastShort(getString(R.string.add_success));
+                    Intent intent=new Intent(AllTaskFragment.this.getContext(), EditTaskActivity.class);
+                    intent.putExtra("task",item.toBundle());
+                    startActivity(intent);
+                }
 
-                        try {
-                            Intent intent=new Intent(AllTaskFragment.this.getContext(), EditTaskActivity.class);
-                            intent.putExtra("task",item.toJson());
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            LogUtil.Error("打开编辑器失败",e);
-                        }
+                @Override
+                public void onCancel(SetTaskDialog dialog) {
+                    ToastUtil.ToastShort(R.string.cancelled);
+                }
 
+            });
+            dialog.setDate(new Date(System.currentTimeMillis()));
+            dialog.popup(itemView);
 
-                    }
-
-                    @Override
-                    public void onCancel(SetTaskDialog dialog) {
-                        ToastUtil.ToastShort("已取消");
-                    }
-
-                });
-                dialog.setDate(new Date(System.currentTimeMillis()));
-                dialog.popup(itemView);
-
-            }
         });
         registerForContextMenu(rv);
         return itemView;
@@ -115,30 +88,36 @@ public class AllTaskFragment extends Fragment implements Observer {
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.option_delete:
-                DBUtil.getInstance().deleteTask(recyclerViewAdapter.getSelectedItem());
+            {
+                new AlertDialog.Builder(getContext())
+                    .setMessage(R.string.if_sure_to_delete)
+                    .setNegativeButton(R.string.cancel, (dialogInterface, i) -> ToastUtil.ToastShort(R.string.cancelled))
+                    .setPositiveButton(R.string.ok, (dialogInterface, i) -> DBUtil.getInstance().deleteTask(mRecyclerViewAdapter.getSelectedItem()))
+                    .setOnCancelListener(dialogInterface -> ToastUtil.ToastShort(R.string.cancelled)).create().show();
                 return true;
+            }
             case R.id.option_edit:
+            {
                 SetTaskDialog dialog=new SetTaskDialog(AllTaskFragment.this.getContext(), R.layout.window_set_task, new SetTaskDialog.OnFinishListener() {
                     @Override
                     public void onSet(SetTaskDialog dialog) {
-                        Item selectedItem=recyclerViewAdapter.getSelectedItem();
+                        Item selectedItem= mRecyclerViewAdapter.getSelectedItem();
                         selectedItem.deadLine=dialog.getDate();
-                        SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd");
                         selectedItem.title=dialog.getTitle();
                         DBUtil.getInstance().updateTask(selectedItem);
                     }
 
                     @Override
                     public void onCancel(SetTaskDialog dialog) {
-                        ToastUtil.ToastShort("已取消");
+                        ToastUtil.ToastShort(R.string.cancelled);
                     }
                 });
-                Date date= recyclerViewAdapter.getSelectedItem().deadLine;
+                Date date= mRecyclerViewAdapter.getSelectedItem().deadLine;
                 dialog.setDate(date);
-                dialog.setTitle(recyclerViewAdapter.getSelectedItem().title);
+                dialog.setTitle(mRecyclerViewAdapter.getSelectedItem().title);
                 dialog.popup(itemView);
                 return true;
-
+            }
         }
 
         return super.onContextItemSelected(item);
@@ -146,12 +125,13 @@ public class AllTaskFragment extends Fragment implements Observer {
 
     @Override
     public void update(Observable target) {
-        recyclerViewAdapter.setItemList(DBUtil.getInstance().getAllTasks());
+        if(mRecyclerViewAdapter!=null)
+            mRecyclerViewAdapter.setItemList(DBUtil.getInstance().getAllTasks());
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        recyclerViewAdapter.setItemList(DBUtil.getInstance().getAllTasks());
+        mRecyclerViewAdapter.setItemList(DBUtil.getInstance().getAllTasks());
     }
 }

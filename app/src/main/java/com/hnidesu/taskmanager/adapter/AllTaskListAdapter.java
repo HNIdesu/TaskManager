@@ -1,6 +1,7 @@
 package com.hnidesu.taskmanager.adapter;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,40 +13,33 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.hnidesu.taskmanager.R;
 import com.hnidesu.taskmanager.activity.EditTaskActivity;
 import com.hnidesu.taskmanager.component.Item;
-import com.hnidesu.taskmanager.fragment.AllTaskFragment;
 import com.hnidesu.taskmanager.ui.CheckBoxEx;
 import com.hnidesu.taskmanager.utility.DBUtil;
-import com.hnidesu.taskmanager.utility.LogUtil;
 import com.hnidesu.taskmanager.viewholder.SingleTaskViewHolder;
-
-import org.json.JSONException;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class AllTaskListAdapter extends RecyclerView.Adapter<SingleTaskViewHolder> {
-
-    private SingleTaskViewHolder selectedVH;
-    public Item getSelectedItem(){
-        return selectedVH.item;
-    }
+    private Context mContext;
+    private SingleTaskViewHolder mSelectedViewHolder;
 
     private List<Item> itemList;
+
     public void setItemList(List<Item> itemList) {
         this.itemList = itemList;
         notifyDataSetChanged();
     }
-
-
-    public AllTaskListAdapter() {
-
-
+    public Item getSelectedItem(){
+        return mSelectedViewHolder.item;
     }
-
+    public AllTaskListAdapter(@NonNull Context ctx){
+        mContext=ctx;
+    }
     @NonNull
     @Override
     public SingleTaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View root = LayoutInflater.from(AllTaskFragment.getInstance().getContext()).inflate(R.layout.single_task, null);
+        View root = LayoutInflater.from(mContext).inflate(R.layout.single_task, parent,false);
         return new SingleTaskViewHolder(root);
     }
 
@@ -53,7 +47,6 @@ public class AllTaskListAdapter extends RecyclerView.Adapter<SingleTaskViewHolde
     public void onBindViewHolder(@NonNull SingleTaskViewHolder holder, int position) {
         Item item = itemList.get(position);
         holder.item=item;
-        holder.finishCheckBox.setPopupWindowContainer(AllTaskFragment.getInstance().getView());
         holder.finishCheckBox.setOnCheckChangeListener(new CheckBoxEx.OnCheckChangeListener() {
             @Override
             public void onChecked() {
@@ -67,29 +60,18 @@ public class AllTaskListAdapter extends RecyclerView.Adapter<SingleTaskViewHolde
                 DBUtil.getInstance().updateTask(item);
             }
         });
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent intent = new Intent(AllTaskFragment.getInstance().getContext(), EditTaskActivity.class);
-                    intent.putExtra("task", item.toJson());
-                    AllTaskFragment.getInstance().startActivity(intent);
-                } catch (JSONException e) {
-                    LogUtil.Error("打开编辑器失败", e);
-                }
-            }
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, EditTaskActivity.class);
+            intent.putExtra("task", item.toBundle());
+            mContext.startActivity(intent);
         });
         holder.titleView.setText(item.title);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        holder.deadlineView.setText("截止日期:" + format.format(item.deadLine));
+        holder.deadlineView.setText(mContext.getString(R.string.deadline) +":" + format.format(item.deadLine));
         holder.finishCheckBox.setChecked(item.isFinished);
-
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                selectedVH=holder;
-                return false;
-            }
+        holder.itemView.setOnLongClickListener(v -> {
+            mSelectedViewHolder =holder;
+            return false;
         });
     }
 

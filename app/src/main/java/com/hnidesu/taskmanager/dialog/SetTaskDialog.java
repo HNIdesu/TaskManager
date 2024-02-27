@@ -19,38 +19,25 @@ import java.util.Date;
 
 public class SetTaskDialog extends PopupWindow {
 
-    private Context mContext;
-    protected Context getContext(){
-        return mContext;
-    }
     private OnFinishListener onFinishListener;
     public SetTaskDialog(@NonNull Context ctx, @LayoutRes int resId, OnFinishListener listener){
         super(ctx);
         setFocusable(true);
-        this.mContext=ctx;
         this.onFinishListener=listener;
         View view= LayoutInflater.from(ctx).inflate(resId,null);
         this.setContentView(view);
         this.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
         this.setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
-        getContentView().findViewById(R.id.button_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onFinishListener.onCancel(SetTaskDialog.this);
-                SetTaskDialog.this.dismiss();
-            }
+        getContentView().findViewById(R.id.button_cancel).setOnClickListener(v -> {
+            onFinishListener.onCancel(SetTaskDialog.this);
+            SetTaskDialog.this.dismiss();
         });
-        getContentView().findViewById(R.id.button_ok).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onFinishListener.onSet(SetTaskDialog.this);
-                SetTaskDialog.this.dismiss();
-            }
+        getContentView().findViewById(R.id.button_ok).setOnClickListener(v -> {
+            onFinishListener.onSet(SetTaskDialog.this);
+            SetTaskDialog.this.dismiss();
         });
 
     }
-
-
 
     public void setDate(Date date){
         DateEditView et_date=getContentView().findViewById(R.id.edittext_deadline_date);

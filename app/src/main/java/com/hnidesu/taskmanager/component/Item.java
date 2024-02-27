@@ -1,7 +1,6 @@
 package com.hnidesu.taskmanager.component;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import android.os.Bundle;
 
 import java.util.Date;
 
@@ -13,15 +12,15 @@ public class Item {
     public Date createTime;
     public Date lastModifiedTime;
 
-    public String toJson() throws JSONException {
-        JSONObject obj=new JSONObject();
-        obj.put("content",content==null?"":content);
-        obj.put("title",title==null?"":title);
-        obj.put("is_finished",isFinished);
-        obj.put("deadline",deadLine.getTime());
-        obj.put("create_time",createTime.getTime());
-        obj.put("last_modified_time",lastModifiedTime.getTime());
-        return obj.toString();
+    public Bundle toBundle() {
+        Bundle bundle=new Bundle();
+        bundle.putString("content",content==null?"":content);
+        bundle.putString("title",title==null?"":title);
+        bundle.putBoolean("is_finished",isFinished);
+        bundle.putLong("deadline",deadLine.getTime());
+        bundle.putLong("create_time",createTime.getTime());
+        bundle.putLong("last_modified_time",lastModifiedTime.getTime());
+        return bundle;
     }
 
 

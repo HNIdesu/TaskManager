@@ -3,16 +3,14 @@ package com.hnidesu.taskmanager.ui;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.CompoundButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatCheckBox;
 
-import com.hnidesu.taskmanager.dialog.SimplePopupWindow;
+import com.hnidesu.taskmanager.R;
+
 
 public class CheckBoxEx extends AppCompatCheckBox {
-    private View popupWindowContainer;
-
     public interface OnCheckChangeListener{
         void onChecked();
         void onNotChecked();
@@ -23,61 +21,39 @@ public class CheckBoxEx extends AppCompatCheckBox {
         this.onCheckChangeListener = onCheckChangeListener;
     }
 
-    private boolean isUserClick;
-    public void setPopupWindowContainer(View popupWindowContainer) {
-        this.popupWindowContainer = popupWindowContainer;
-        this.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction()==MotionEvent.ACTION_DOWN)
-                    isUserClick=true;
-                return false;
-            }
-        });
-        this.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(!isUserClick)
-                    return;
-                isUserClick=false;
-                SimplePopupWindow popupWindow;
-                if(isChecked){
-                    popupWindow = new SimplePopupWindow(getContext(), "是否确定已完成", new SimplePopupWindow.OnDialogResultListener() {
-                        @Override
-                        public void onCancel(SimplePopupWindow dialog) {
-                            CheckBoxEx.this.setChecked(false);
-                        }
-
-                        @Override
-                        public void onOk(SimplePopupWindow dialog) {
-                            if (onCheckChangeListener != null)
-                                onCheckChangeListener.onChecked();
-                        }
-                    });
-                }else{
-
-                    popupWindow = new SimplePopupWindow(getContext(), "是否确定取消已完成", new SimplePopupWindow.OnDialogResultListener() {
-                        @Override
-                        public void onCancel(SimplePopupWindow dialog) {
-                            CheckBoxEx.this.setChecked(true);
-                        }
-
-                        @Override
-                        public void onOk(SimplePopupWindow dialog) {
-                            if (onCheckChangeListener != null)
-                                onCheckChangeListener.onNotChecked();
-                        }
-                    });
-
-                }
-                popupWindow.popup(popupWindowContainer);
-            }
-        });
-
-    }
+    private boolean mIsUserClick;
 
     public CheckBoxEx(Context context, AttributeSet attrs) {
         super(context, attrs);
+        this.setOnTouchListener((v, event) -> {
+            if(event.getAction()==MotionEvent.ACTION_DOWN)
+                mIsUserClick =true;
+            return false;
+        });
+        this.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(!mIsUserClick)
+                return;
+            mIsUserClick=false;
+            if(isChecked){
+                new AlertDialog.Builder(context)
+                        .setCancelable(false)
+                        .setMessage(R.string.whether_check_finished)
+                        .setNegativeButton(R.string.cancel, (dialogInterface, i) -> CheckBoxEx.this.setChecked(false))
+                        .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                    if (onCheckChangeListener != null)
+                        onCheckChangeListener.onChecked();
+                }).create().show();
+            }else{
+                new AlertDialog.Builder(context)
+                        .setMessage(R.string.whether_cancel_check_finished)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                    if (onCheckChangeListener != null)
+                        onCheckChangeListener.onNotChecked();
+                }).setNegativeButton(R.string.cancel, (dialogInterface, i) -> CheckBoxEx.this.setChecked(true))
+                        .create().show();
+            }
+        });
     }
 
 

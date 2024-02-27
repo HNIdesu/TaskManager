@@ -2,9 +2,7 @@ package com.hnidesu.taskmanager.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -26,38 +24,27 @@ public class ImportDataDialog extends Dialog {
         textViewImportInfo=findViewById(R.id.textView_importInfo);
         btnOverride=findViewById(R.id.btn_override);
         btnAppend=findViewById(R.id.btn_append);
-        setOnDismissListener(new OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialogInterface) {
-                ToastUtil.ToastLong(context.getString(R.string.cancelled));
+        setOnDismissListener(dialogInterface -> ToastUtil.ToastLong(context.getString(R.string.cancelled)));
+        btnAppend.setOnClickListener(view -> {
+            try{
+                DBUtil.getInstance().importData(items);
+                ToastUtil.ToastLong(context.getString(R.string.import_succeed));
+            }catch (Exception e){
+                ToastUtil.ToastLong(context.getString(R.string.import_failed));
             }
-        });
-        btnAppend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try{
-                    DBUtil.getInstance().importData(items);
-                    ToastUtil.ToastLong(context.getString(R.string.import_succeed));
-                }catch (Exception e){
-                    ToastUtil.ToastLong(context.getString(R.string.import_failed));
-                }
-                ImportDataDialog.this.dismiss();
+            ImportDataDialog.this.dismiss();
 
-            }
         });
-        btnOverride.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try{
-                    DBUtil.getInstance().clear();
-                    DBUtil.getInstance().importData(items);
-                    ToastUtil.ToastLong(context.getString(R.string.import_succeed));
-                }catch (Exception e){
-                    ToastUtil.ToastLong(context.getString(R.string.import_failed));
-                }
-                ImportDataDialog.this.dismiss();
-
+        btnOverride.setOnClickListener(view -> {
+            try{
+                DBUtil.getInstance().clear();
+                DBUtil.getInstance().importData(items);
+                ToastUtil.ToastLong(context.getString(R.string.import_succeed));
+            }catch (Exception e){
+                ToastUtil.ToastLong(context.getString(R.string.import_failed));
             }
+            ImportDataDialog.this.dismiss();
+
         });
         textViewImportInfo.setText(String.format(getContext().getString(R.string.notice_import_data),items.size()));
     }

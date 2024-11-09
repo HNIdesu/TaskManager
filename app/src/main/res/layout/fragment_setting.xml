@@ -1,51 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".fragment.SettingFragment">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/toolbar_height"
-        android:background="@color/toolbar_background_color"
-        android:paddingStart="15dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/setting"
-            android:layout_centerVertical="true"
-            android:textSize="@dimen/toolbar_title_font_size"
-            android:textColor="@color/white"
-            android:layout_gravity="center_vertical" />
-    </RelativeLayout>
+    android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <Button
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:layout_height="40dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="20dp"
+                android:gravity="center"
+                android:text="@string/warn_of_upcoming_tasks"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/enable_task_notification"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/black" />
+
+        <Button
             android:id="@+id/btn_import_data"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:text="@string/import_data"/>
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="@string/import_data"
+            android:textSize="15sp" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/black"/>
+            android:background="@color/black" />
+
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
             android:id="@+id/btn_export_data"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:text="@string/export_data"/>
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="@string/export_data"
+            android:textSize="15sp" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/black"/>
+            android:background="@color/black" />
     </LinearLayout>
-
-
 </LinearLayout>

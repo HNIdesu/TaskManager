@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:name=".MyApplication"
-        android:allowBackup="false"
+        android:name=".MainApplication"
+        android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -14,36 +16,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TaskManager"
         tools:targetApi="34">
+
         <service
-            android:name=".CheckDeadlineService"
-            android:enabled="true" />
+            android:name="com.hnidesu.taskmanager.service.CheckDeadlineService"
+            android:enabled="true"
+            android:exported="false" />
 
         <activity
-            android:name=".activity.EditTaskActivity"
+            android:name="com.hnidesu.taskmanager.activity.EditTaskActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustUnspecified">
+
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
+
         </activity>
+
         <activity
-            android:name=".activity.SplashActivity"
-            android:exported="true">
+            android:name="com.hnidesu.taskmanager.activity.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="stateAlwaysHidden">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
-        </activity>
-        <activity
-            android:name=".activity.MainActivity"
-            android:windowSoftInputMode="stateAlwaysHidden">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
+
         </activity>
     </application>
 

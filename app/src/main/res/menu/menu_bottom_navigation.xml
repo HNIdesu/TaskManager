@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:icon="@drawable/baseline_home_24" android:id="@+id/navigation_home" android:title="@string/home"/>
+    <item android:icon="@drawable/baseline_window_24" android:id="@+id/navigation_task_list" android:title="@string/task_list"/>
+    <item android:icon="@drawable/baseline_settings_24" android:id="@+id/navigation_setting" android:title="@string/setting"/>
+</menu>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        android:title="@string/notification_setting" >
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="deadline_notification"
+            app:iconSpaceReserved="false"
+            android:title="@string/warn_of_upcoming_tasks" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        android:title="@string/user_data_manage" >
+        <Preference
+            android:key="import_data"
+            app:iconSpaceReserved="false"
+            android:title="@string/import_data" />
+        <Preference
+            android:key="export_data"
+            app:iconSpaceReserved="false"
+            android:title="@string/export_data" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -19,6 +19,10 @@ object TaskManager{
         }else false
     }
 
+    fun addTask(context:Context,item: TaskEntity) {
+        DatabaseTaskSource(context).addTask(item)
+    }
+
     fun updateTask(context:Context,item: TaskEntity) {
         DatabaseTaskSource(context).updateTask(item)
     }

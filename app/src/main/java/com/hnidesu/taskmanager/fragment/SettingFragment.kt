@@ -1,5 +1,6 @@
 package com.hnidesu.taskmanager.fragment
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResult
@@ -10,35 +11,43 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import com.hnidesu.taskmanager.R
-import com.hnidesu.taskmanager.base.DatabaseTaskSource
+import com.hnidesu.taskmanager.database.TaskEntity
+import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.service.CheckDeadlineService
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
 import com.hnidesu.taskmanager.widget.dialog.ImportDataDialog
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class SettingFragment : PreferenceFragmentCompat() {
     private val mExportDataLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val context = requireContext()
-        val data = result.data
-        val data2 = data?.data
-        if (result.resultCode == -1 && data2 != null) {
-            val file = context.getDatabasePath("database.db")
+        val data = result.data?.data
+        if (result.resultCode != Activity.RESULT_CANCELED && data != null) {
             try {
-                context.contentResolver.openOutputStream(data2).use { outputStream ->
-                    FileInputStream(file).use { fileInputStream ->
-                        val buffer = ByteArray(65536)
-                        while (true) {
-                            val bytesRead = fileInputStream.read(buffer)
-                            if (bytesRead == -1)
-                                break
-                            outputStream!!.write(buffer, 0, bytesRead)
-                        }
+                context.contentResolver.openOutputStream(data)?.use { outputStream ->
+                    val json=JSONObject()
+                    json.put("version",1)
+                    val taskList= TaskManager.getTasks(context,null)
+                    val taskListJsonArray=JSONArray()
+                    json.put("tasks",taskListJsonArray)
+                    for (task in taskList) {
+                        taskListJsonArray.put(JSONObject().apply {
+                            put("create_time", task.createTime)
+                            put("title", task.title)
+                            put("content", task.content)
+                            put("is_finished", task.isFinished)
+                            put("deadline", task.deadline)
+                            put("is_encrypted", task.isEncrypted)
+                            put("last_modified_time", task.lastModifiedTime)
+                        })
                     }
+                    outputStream.write(json.toString().toByteArray())
                 }
             } catch (e: Exception) {
                 LogUtil.error(getString(R.string.save_data_failed), e)
@@ -58,31 +67,29 @@ class SettingFragment : PreferenceFragmentCompat() {
                     ToastUtil.toastShort(context,R.string.cancelled)
                     return
                 }
-                val tempFile = File(context.cacheDir.absolutePath + "/temp_database.db")
-                tempFile.deleteOnExit()
                 try {
-                    val inputStream= try {
-                        context.contentResolver.openInputStream(data)
-                    } catch (e: Exception) {
-                        LogUtil.error(context.getString(R.string.import_data_failed), e)
-                        ToastUtil.toastLong(context,R.string.import_data_failed)
-                        return
-                    } ?: throw Exception("读取文件失败")
-                    inputStream.use {
-                        FileOutputStream(tempFile).use { fileOutputStream->
-                            val buffer = ByteArray(65536)
-                            while (true) {
-                                val bytesRead = it.read(buffer)
-                                if (bytesRead == -1) {
-                                    break
-                                }
-                                fileOutputStream.write(buffer, 0, bytesRead)
+                    val json=JSONObject(context.contentResolver.openInputStream(data)?.use {inputStream->
+                        InputStreamReader(inputStream).use { reader->
+                            BufferedReader(reader).use {
+                                it.readText()
                             }
                         }
+                    }!!)
+                    val taskListJsonArray=json.getJSONArray("tasks")
+                    val taskList= mutableListOf<TaskEntity>()
+                    for (i in 0 until taskListJsonArray.length()) {
+                        val taskJson=taskListJsonArray.getJSONObject(i)
+                        taskList.add(TaskEntity(
+                            taskJson.getLong("create_time"),
+                            taskJson.getString("content"),
+                            taskJson.getString("title"),
+                            taskJson.getInt("is_finished"),
+                            taskJson.getLong("deadline"),
+                            taskJson.getLong("last_modified_time"),
+                            taskJson.getInt("is_encrypted")
+                        ))
                     }
-                    val taskList = DatabaseTaskSource(context).getTasks(null).toList()
                     ImportDataDialog(context, taskList).show()
-                    tempFile.deleteOnExit()
                 } catch (ex:Exception) {
                     LogUtil.error(getString(R.string.import_failed),ex)
                     ToastUtil.toastLong(context,R.string.import_failed)
@@ -108,10 +115,9 @@ class SettingFragment : PreferenceFragmentCompat() {
                 addCategory("android.intent.category.OPENABLE")
                 putExtra(
                     "android.intent.extra.TITLE",
-                    "database_com.hnidesu.taskmanager.db"
+                    "tasklist.json"
                 )
             }
-
             mExportDataLauncher.launch(intent)
             true
         }

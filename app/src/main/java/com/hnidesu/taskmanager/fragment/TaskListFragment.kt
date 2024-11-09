@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
 import com.hnidesu.taskmanager.adapter.TaskListAdapter
-import com.hnidesu.taskmanager.base.DatabaseTaskSource
 import com.hnidesu.taskmanager.base.SortType
 import com.hnidesu.taskmanager.base.TaskCollection
 import com.hnidesu.taskmanager.base.filter.Filter
@@ -99,7 +98,7 @@ class TaskListFragment : Fragment() {
                             val taskEntity =
                                 TaskEntity(current, "", title, 0, date.time, current, 0)
                             thread {
-                                DatabaseTaskSource(context).addTask(taskEntity)
+                                TaskManager.addTask(context,taskEntity)
                                 val taskCollection = mDataSource
                                 val insertIndex = taskCollection.add(taskEntity)
                                 requireActivity().runOnUiThread {
@@ -249,7 +248,7 @@ class TaskListFragment : Fragment() {
                         override fun onSet(title: String, date: Date) {
                             selectedItem.deadline = date.time
                             selectedItem.title = title
-                            DatabaseTaskSource(context).updateTask(selectedItem)
+                            TaskManager.updateTask(context,selectedItem)
                             val newIndex = mDataSource.update(selectedIndex)
                             requireActivity().runOnUiThread{
                                 adapter.notifyItemMoved(selectedIndex, newIndex)

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnLongClickListener
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -19,34 +18,23 @@ import java.util.Locale
 
 
 class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
-    private var mTaskSource: TaskCollection? = null
-    @JvmField
+    var taskSource: TaskCollection? = null
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+    var selectedIndex = -1
     var onTaskFinishChangeListener: OnTaskFinishChangeListener? = null
-    var selectedIndex: Int=-1
-        private set
-    @JvmField
-    var selectedItem: TaskEntity? = null
 
     interface OnTaskFinishChangeListener {
         fun onFinish(taskItem: TaskEntity?)
         fun onNotFinish(taskItem: TaskEntity?)
     }
 
-    fun setDataSource(taskItemList: TaskCollection?) {
-        mTaskSource = taskItemList
-        notifyDataSetChanged()
-    }
-
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val deadlineView: TextView
-        val finishCheckBox: CheckBoxEx
-        val titleView: TextView
-
-        init {
-            titleView = itemView.findViewById<View>(R.id.textview_title) as TextView
-            deadlineView = itemView.findViewById<View>(R.id.textview_deadline) as TextView
-            finishCheckBox = itemView.findViewById<View>(R.id.checkbox_is_finished) as CheckBoxEx
-        }
+        val deadlineView: TextView = itemView.findViewById<View>(R.id.textview_deadline) as TextView
+        val finishCheckBox: CheckBoxEx = itemView.findViewById<View>(R.id.checkbox_is_finished) as CheckBoxEx
+        val titleView: TextView = itemView.findViewById<View>(R.id.textview_title) as TextView
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -57,7 +45,7 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
 
     override fun onBindViewHolder(holder: ViewHolder, p: Int) {
         val position=holder.adapterPosition
-        val item=mTaskSource?.get(position) ?: return
+        val item=taskSource?.get(position) ?: return
         holder.finishCheckBox.setOnCheckChangeListener(object : OnCheckChangeListener {
             override fun onChecked() {
                 onTaskFinishChangeListener?.onFinish(item)
@@ -72,24 +60,19 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
             mContext.startActivity(intent)
         }
         holder.titleView.text = item.title
-
         holder.deadlineView.text ="${mContext.getString(R.string.deadline)}:${SimpleDateFormat(
             "yyyy-MM-dd HH:mm", Locale.US
         ).format(item.deadline)}"
         holder.finishCheckBox.setChecked(item.isFinished == 1)
-        holder.itemView.setOnLongClickListener(object : OnLongClickListener {
-            override fun onLongClick(view: View): Boolean {
-                selectedIndex = position
-                selectedItem = item
-                return false
-            }
-        })
+        holder.itemView.setOnLongClickListener {
+            selectedIndex = holder.adapterPosition
+            false
+        }
     }
 
 
     override fun getItemCount(): Int {
-        val taskCollection = mTaskSource
-        return taskCollection?.size ?: 0
+        return taskSource?.size ?: 0
     }
 
 

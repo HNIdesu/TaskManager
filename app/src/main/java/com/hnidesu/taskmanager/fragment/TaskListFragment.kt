@@ -1,6 +1,5 @@
 package com.hnidesu.taskmanager.fragment
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.ContextMenu
@@ -55,7 +54,7 @@ class TaskListFragment : Fragment() {
         mItemView = itemView
         val context = requireContext()
         val adapter = TaskListAdapter(context)
-        adapter.setDataSource(mDataSource)
+        adapter.taskSource=mDataSource
         adapter.onTaskFinishChangeListener = object : TaskListAdapter.OnTaskFinishChangeListener{
             override fun onFinish(taskItem: TaskEntity?) {
                 thread{
@@ -95,19 +94,14 @@ class TaskListFragment : Fragment() {
                         override fun onSet(title: String, date: Date) {
                             val current = System.currentTimeMillis()
                             val taskEntity = TaskEntity(current, "", title, 0, date.time, current, 0)
-                            thread {
-                                TaskManager.addTask(context,taskEntity)
-                                val taskCollection = mDataSource
-                                val insertIndex = taskCollection.add(taskEntity)
-                                requireActivity().runOnUiThread {
-                                    val taskListAdapter = mRecyclerViewAdapter
-                                    taskListAdapter?.notifyItemInserted(insertIndex)
-                                    ToastUtil.toastShort(context,R.string.add_success)
-                                    val intent = Intent(context, EditTaskActivity::class.java)
-                                    intent.putExtra("task_id", taskEntity.createTime)
-                                    startActivity(intent)
-                                }
-                            }
+                            TaskManager.addTask(context,taskEntity)
+                            val insertIndex = mDataSource.add(taskEntity)
+                            val taskListAdapter = mRecyclerViewAdapter
+                            taskListAdapter?.notifyItemInserted(insertIndex)
+                            ToastUtil.toastShort(context,R.string.add_success)
+                            val intent = Intent(context, EditTaskActivity::class.java)
+                            intent.putExtra("task_id", taskEntity.createTime)
+                            startActivity(intent)
                         }
 
                     },
@@ -116,7 +110,7 @@ class TaskListFragment : Fragment() {
             }
         val sharedPrefs = SettingManager.getDefaultSetting(context)
         itemView.findViewById<SwitchCompat>(R.id.switch_hide_expired_task).apply {
-            setOnCheckedChangeListener { compoundButton, z ->
+            setOnCheckedChangeListener { _, z ->
                 mFilterOption.hideExpiredTask = z
                 sharedPrefs.edit().putBoolean("hide_expired_task", z).apply()
                 if (mAutoUpdate) {
@@ -127,9 +121,9 @@ class TaskListFragment : Fragment() {
         }
 
         itemView.findViewById<SwitchCompat>(R.id.switch_hide_finished_task).apply {
-            setOnCheckedChangeListener { compoundButton, z ->
-                mFilterOption.hideFinishedTask = isChecked
-                sharedPrefs.edit().putBoolean("hide_finished_task", isChecked).apply()
+            setOnCheckedChangeListener { _, z ->
+                mFilterOption.hideFinishedTask = z
+                sharedPrefs.edit().putBoolean("hide_finished_task", z).apply()
                 if (mAutoUpdate) {
                     update(null)
                 }
@@ -138,10 +132,10 @@ class TaskListFragment : Fragment() {
         }
 
         itemView.findViewById<CheckBox>(R.id.checkbox_reverse).apply {
-            setOnCheckedChangeListener { _, _ ->
-                if (mFilterOption.reverseSort != isChecked) {
-                    mFilterOption.reverseSort = isChecked
-                    sharedPrefs.edit().putBoolean("reverse_sort", isChecked).apply()
+            setOnCheckedChangeListener { _, z ->
+                if (mFilterOption.reverseSort != z) {
+                    mFilterOption.reverseSort = z
+                    sharedPrefs.edit().putBoolean("reverse_sort", z).apply()
                     if (mAutoUpdate)
                         update(null)
                 }
@@ -189,6 +183,7 @@ class TaskListFragment : Fragment() {
             }
             setSelection(sharedPrefs.getInt("sort_by", 0))
         }
+
         update(null)
         mAutoUpdate = true
         return itemView
@@ -205,51 +200,47 @@ class TaskListFragment : Fragment() {
             R.id.option_delete -> {
                 val adapter = mRecyclerViewAdapter ?: return false
                 AlertDialog.Builder(requireContext()).setMessage(R.string.if_sure_to_delete)
-                    .setNegativeButton(R.string.cancel, object : DialogInterface.OnClickListener {
-                        override fun onClick(dialogInterface: DialogInterface, i: Int) {
-                            ToastUtil.toastShort(requireContext(),R.string.cancelled)
-                        }
-                    }).setPositiveButton(R.string.ok
+                    .setNegativeButton(R.string.cancel
                     ) { _, _ ->
-                        val selectedTask = adapter.selectedItem
+                        ToastUtil.toastShort(
+                            requireContext(),
+                            R.string.cancelled
+                        )
+                    }.setPositiveButton(R.string.ok
+                    ) { _, _ ->
                         val selectedIndex = adapter.selectedIndex
-                        if (selectedTask != null) {
-                            thread {
-                                TaskManager.deleteTask(requireContext(), selectedTask)
-                                requireActivity().runOnUiThread {
-                                    mDataSource.removeAt(selectedIndex)
-                                    adapter.notifyItemRemoved(selectedIndex)
-                                }
-                            }
+                        val selectedItem=adapter.taskSource?.get(selectedIndex)
+                        if (selectedItem != null) {
+                            TaskManager.deleteTask(requireContext(), selectedItem)
+                            adapter.taskSource?.removeAt(selectedIndex)
+                            adapter.notifyItemRemoved(selectedIndex)
                         }
                     }.setOnCancelListener { }.create().show()
                 return true
             }
 
             R.id.option_edit -> {
-                val adapter: TaskListAdapter? = mRecyclerViewAdapter
-                val selectedItem= adapter?.selectedItem ?: return false
-                val selectedIndex: Int = adapter.selectedIndex
-                val context = requireContext()
-                SetTaskDialogFactory(
-                    context,
-                    Date(selectedItem.deadline),
-                    selectedItem.title,
-                    object :SetTaskDialogFactory.OnFinishListener{
-                        override fun onCancel() {}
-                        override fun onSet(title: String, date: Date) {
-                            selectedItem.deadline = date.time
-                            selectedItem.title = title
-                            TaskManager.updateTask(context,selectedItem)
-                            val newIndex = mDataSource.update(selectedIndex)
-                            requireActivity().runOnUiThread{
-                                adapter.notifyItemMoved(selectedIndex, newIndex)
-                                adapter.notifyItemChanged(newIndex)
+                val adapter = mRecyclerViewAdapter ?: return false
+                val selectedIndex = adapter.selectedIndex
+                val selectedItem= adapter.taskSource?.get(selectedIndex)
+                if(selectedItem!=null){
+                    SetTaskDialogFactory(
+                        requireContext(),
+                        Date(selectedItem.deadline),
+                        selectedItem.title,
+                        object :SetTaskDialogFactory.OnFinishListener{
+                            override fun onCancel() {}
+                            override fun onSet(title: String, date: Date) {
+                                selectedItem.deadline = date.time
+                                selectedItem.title = title
+                                selectedItem.lastModifiedTime = System.currentTimeMillis()
+                                TaskManager.updateTask(requireContext(),selectedItem)
+                                update(null)
                             }
-                        }
-                    },
-                    getString(R.string.edit_task)
-                ).create().show()
+                        },
+                        getString(R.string.edit_task)
+                    ).create().show()
+                }
                 return true
             }
 

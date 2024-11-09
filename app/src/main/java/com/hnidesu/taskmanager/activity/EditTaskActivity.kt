@@ -21,22 +21,16 @@ class EditTaskActivity : AppCompatActivity() {
     private var mOnMenuItemClickListener: ActionMenuView.OnMenuItemClickListener? = null
     private var mPreviousTextHash: Long = 0
     private var mViewHolder: ViewHolder? = null
+    private var mEntity:TaskEntity?=null
 
     inner class ViewHolder {
-        @JvmField
-        val editText: EditTextEx
-
-        init {
-            val findViewById = findViewById<View>(R.id.edittext)
-            editText = findViewById as EditTextEx
-        }
+        val editText: EditTextEx = findViewById(R.id.edittext)
 
         fun bindViews() {
             try {
-                val serializableExtra = this@EditTaskActivity.intent.getSerializableExtra("task")
-                val entity = serializableExtra as? TaskEntity?:return
+                val entity=mEntity?:return
                 val taskTitle = entity.title
-                val supportActionBar = this@EditTaskActivity.supportActionBar
+                val supportActionBar = supportActionBar
                 supportActionBar?.setTitle(taskTitle)
                 mPreviousTextHash = HashUtil.crc32Digest(entity.content)
                 editText.setTextChangeListener(object : TextChangeListener {
@@ -87,7 +81,7 @@ class EditTaskActivity : AppCompatActivity() {
     }
 
     fun onExit() {
-        val entity = intent.getSerializableExtra("task") as? TaskEntity ?: return
+        val entity = mEntity?:return
         val viewHolder = mViewHolder
         val temp: String? = viewHolder?.editText?.text?.toString()
         if (temp != null && HashUtil.crc32Digest(temp) != mPreviousTextHash) {
@@ -114,6 +108,10 @@ class EditTaskActivity : AppCompatActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_task)
+        val taskId=intent.getLongExtra("task_id",0)
+        TaskManager.findTask(this@EditTaskActivity,taskId)?.also {
+            mEntity=it
+        }
         mViewHolder=ViewHolder().also {
             it.bindViews()
         }

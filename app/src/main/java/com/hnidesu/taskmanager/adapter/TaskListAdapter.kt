@@ -57,7 +57,7 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
 
     override fun onBindViewHolder(holder: ViewHolder, p: Int) {
         val position=holder.adapterPosition
-        val item= mTaskSource?.get(position) ?: return
+        val item=mTaskSource?.get(position) ?: return
         holder.finishCheckBox.setOnCheckChangeListener(object : OnCheckChangeListener {
             override fun onChecked() {
                 onTaskFinishChangeListener?.onFinish(item)
@@ -66,9 +66,9 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
                 onTaskFinishChangeListener?.onNotFinish(item)
             }
         })
-        holder.itemView.setOnClickListener { view ->
+        holder.itemView.setOnClickListener { _ ->
             val intent = Intent(mContext, EditTaskActivity::class.java)
-            intent.putExtra("task", item)
+            intent.putExtra("task_id", item.createTime)
             mContext.startActivity(intent)
         }
         holder.titleView.text = item.title

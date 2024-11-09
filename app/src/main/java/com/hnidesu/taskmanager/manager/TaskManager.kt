@@ -19,6 +19,10 @@ object TaskManager{
         }else false
     }
 
+    fun findTask(context:Context,id:Long): TaskEntity? {
+        return DatabaseTaskSource(context).findTask(id)
+    }
+
     fun addTask(context:Context,item: TaskEntity) {
         DatabaseTaskSource(context).addTask(item)
     }

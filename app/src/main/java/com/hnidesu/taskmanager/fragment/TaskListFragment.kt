@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.CheckBox
-import android.widget.CompoundButton
 import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
@@ -95,8 +94,7 @@ class TaskListFragment : Fragment() {
 
                         override fun onSet(title: String, date: Date) {
                             val current = System.currentTimeMillis()
-                            val taskEntity =
-                                TaskEntity(current, "", title, 0, date.time, current, 0)
+                            val taskEntity = TaskEntity(current, "", title, 0, date.time, current, 0)
                             thread {
                                 TaskManager.addTask(context,taskEntity)
                                 val taskCollection = mDataSource
@@ -106,7 +104,7 @@ class TaskListFragment : Fragment() {
                                     taskListAdapter?.notifyItemInserted(insertIndex)
                                     ToastUtil.toastShort(context,R.string.add_success)
                                     val intent = Intent(context, EditTaskActivity::class.java)
-                                    intent.putExtra("task", taskEntity)
+                                    intent.putExtra("task_id", taskEntity.createTime)
                                     startActivity(intent)
                                 }
                             }
@@ -118,42 +116,36 @@ class TaskListFragment : Fragment() {
             }
         val sharedPrefs = SettingManager.getDefaultSetting(context)
         itemView.findViewById<SwitchCompat>(R.id.switch_hide_expired_task).apply {
-            setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                override fun onCheckedChanged(compoundButton: CompoundButton, z: Boolean) {
-                    mFilterOption.hideExpiredTask = z
-                    sharedPrefs.edit().putBoolean("hide_expired_task", z).apply()
-                    if (mAutoUpdate) {
-                        update(null)
-                    }
+            setOnCheckedChangeListener { compoundButton, z ->
+                mFilterOption.hideExpiredTask = z
+                sharedPrefs.edit().putBoolean("hide_expired_task", z).apply()
+                if (mAutoUpdate) {
+                    update(null)
                 }
-            })
+            }
             setChecked(sharedPrefs.getBoolean("hide_expired_task", false))
         }
 
         itemView.findViewById<SwitchCompat>(R.id.switch_hide_finished_task).apply {
-            setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                override fun onCheckedChanged(compoundButton: CompoundButton, z: Boolean) {
-                    mFilterOption.hideFinishedTask = isChecked
-                    sharedPrefs.edit().putBoolean("hide_finished_task", isChecked).apply()
-                    if (mAutoUpdate) {
-                        update(null)
-                    }
+            setOnCheckedChangeListener { compoundButton, z ->
+                mFilterOption.hideFinishedTask = isChecked
+                sharedPrefs.edit().putBoolean("hide_finished_task", isChecked).apply()
+                if (mAutoUpdate) {
+                    update(null)
                 }
-            })
+            }
             setChecked(sharedPrefs.getBoolean("hide_finished_task", false))
         }
 
         itemView.findViewById<CheckBox>(R.id.checkbox_reverse).apply {
-            setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                override fun onCheckedChanged(compoundButton: CompoundButton, z: Boolean) {
-                    if (mFilterOption.reverseSort != isChecked) {
-                        mFilterOption.reverseSort = isChecked
-                        sharedPrefs.edit().putBoolean("reverse_sort", isChecked).apply()
-                        if (mAutoUpdate)
-                            update(null)
-                    }
+            setOnCheckedChangeListener { _, _ ->
+                if (mFilterOption.reverseSort != isChecked) {
+                    mFilterOption.reverseSort = isChecked
+                    sharedPrefs.edit().putBoolean("reverse_sort", isChecked).apply()
+                    if (mAutoUpdate)
+                        update(null)
                 }
-            })
+            }
             setChecked(sharedPrefs.getBoolean("reverse_sort", false))
         }
 

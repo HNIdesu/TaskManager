@@ -5,66 +5,35 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatEditText
-import java.util.Date
-import kotlin.jvm.internal.Intrinsics
+import org.threeten.bp.LocalDate
+import org.threeten.bp.format.DateTimeFormatter
 
 
 @SuppressLint("ClickableViewAccessibility")
-class DateEditView(context: Context, attrs: AttributeSet?) : AppCompatEditText(
+class DateEditView(context: Context, attrs: AttributeSet? = null) : AppCompatEditText(
     context, attrs
 ) {
-    private var mDate = 0
-    private var mMonth = 0
     private var mTouchFlag = false
-    private var mYear: Int
+    var date: LocalDate = LocalDate.now()
+        set(value) {
+            setText(DateTimeFormatter.ofPattern("yyyy-MM-dd").format(value))
+            field = value
+        }
 
     init {
-        mYear = -1
-        setOnTouchListener { _, motionEvent ->
+        setText(DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date))
+        setOnTouchListener { _, _ ->
             if (mTouchFlag)
                 return@setOnTouchListener false
             mTouchFlag = true
-            if (mYear == -1) {
-                val curDate = Date(System.currentTimeMillis())
-                setDate(curDate.year, curDate.month, curDate.date)
-            }
-            val dialog = DatePickerDialog(context, { datePicker, i, i2, i3 ->
-                val format = String.format(
-                    "%04d-%02d-%02d",
-                    arrayOf(
-                        datePicker.year,
-                        datePicker.month + 1,
-                        datePicker.dayOfMonth
-                    )
-                )
-                setText(format)
-                setDate(datePicker.year - 1900, datePicker.month, datePicker.dayOfMonth)
-            }, mYear + 1900, mMonth, mDate)
-            dialog.setOnDismissListener { dialogInterface ->
-                mTouchFlag = false
-            }
-            dialog.show()
+            DatePickerDialog(context, { datePicker, _, _, _ ->
+                date = LocalDate.of(datePicker.year, datePicker.month + 1, datePicker.dayOfMonth)
+            }, date.year, date.monthValue - 1, date.dayOfMonth).apply {
+                setOnDismissListener {
+                    mTouchFlag = false
+                }
+            }.show()
             return@setOnTouchListener true
         }
     }
-
-    fun getDate(): Long {
-        val date = Date(0L)
-        date.year = mYear
-        date.setMonth(mMonth)
-        date.date = this.mDate
-        return date.time
-    }
-
-    fun setDate(year: Int, month: Int, date: Int) {
-        this.mYear = year
-        this.mMonth = month
-        this.mDate = date
-        val format =
-            String.format("%04d-%02d-%02d", *arrayOf<Any>(year + 1900, month + 1, date).copyOf(3))
-        Intrinsics.checkNotNullExpressionValue(format, "format(...)")
-        setText(format)
-    }
-
-
 }

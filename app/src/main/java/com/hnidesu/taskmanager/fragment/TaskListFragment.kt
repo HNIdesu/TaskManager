@@ -30,7 +30,9 @@ import com.hnidesu.taskmanager.manager.SettingManager
 import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.ToastUtil
 import com.hnidesu.taskmanager.widget.dialog.SetTaskDialogFactory
-import java.util.Date
+import org.threeten.bp.Instant
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneId
 import kotlin.concurrent.thread
 
 class TaskListFragment : Fragment() {
@@ -91,9 +93,10 @@ class TaskListFragment : Fragment() {
                     object : SetTaskDialogFactory.OnFinishListener {
                         override fun onCancel() {}
 
-                        override fun onSet(title: String, date: Date) {
+                        override fun onSet(title: String, date: LocalDateTime) {
                             val current = System.currentTimeMillis()
-                            val taskEntity = TaskEntity(current, "", title, 0, date.time, current, 0)
+                            val taskEntity = TaskEntity(current, "", title, 0,
+                                date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(), current, 0)
                             TaskManager.addTask(context,taskEntity)
                             val insertIndex = mDataSource.add(taskEntity)
                             val taskListAdapter = mRecyclerViewAdapter
@@ -226,12 +229,12 @@ class TaskListFragment : Fragment() {
                 if(selectedItem!=null){
                     SetTaskDialogFactory(
                         requireContext(),
-                        Date(selectedItem.deadline),
+                        Instant.ofEpochMilli(selectedItem.deadline).atZone(ZoneId.systemDefault()).toLocalDateTime(),
                         selectedItem.title,
                         object :SetTaskDialogFactory.OnFinishListener{
                             override fun onCancel() {}
-                            override fun onSet(title: String, date: Date) {
-                                selectedItem.deadline = date.time
+                            override fun onSet(title: String, date: LocalDateTime) {
+                                selectedItem.deadline = date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                                 selectedItem.title = title
                                 selectedItem.lastModifiedTime = System.currentTimeMillis()
                                 TaskManager.updateTask(requireContext(),selectedItem)

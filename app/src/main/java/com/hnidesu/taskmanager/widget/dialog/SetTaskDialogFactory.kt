@@ -9,24 +9,24 @@ import androidx.appcompat.app.AlertDialog
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.widget.view.DateEditView
 import com.hnidesu.taskmanager.widget.view.TimeEditView
-import java.util.Date
+import org.threeten.bp.LocalDateTime
 
 class SetTaskDialogFactory(
     private val mContext: Context,
-    private val mDefaultDate: Date,
+    private val mDefaultDateTime: LocalDateTime,
     private val mDefaultTitle: String,
     private val mOnFinishListener: OnFinishListener,
     private val mTitle: String
 ) {
     interface OnFinishListener {
         fun onCancel()
-        fun onSet(title: String, date: Date)
+        fun onSet(title: String, date: LocalDateTime)
     }
 
     constructor(context: Context, listener: OnFinishListener, title: String):
         this(
             context,
-            Date(System.currentTimeMillis()),
+            LocalDateTime.now(),
             context.getString(R.string.untitled_task),
             listener,
             title
@@ -39,19 +39,17 @@ class SetTaskDialogFactory(
         val deadlineDate = view.findViewById<DateEditView>(R.id.edittext_deadline_date)
         val deadlineTime = view.findViewById<TimeEditView>(R.id.edittext_deadline_time)
         taskTitleView.setText(mDefaultTitle)
-        deadlineDate.setDate(mDefaultDate.year, mDefaultDate.month, mDefaultDate.date)
-        deadlineTime.setTime(mDefaultDate.hours, mDefaultDate.minutes)
+        deadlineDate.date = mDefaultDateTime.toLocalDate()
+        deadlineTime.time = mDefaultDateTime.toLocalTime()
         return AlertDialog.Builder(mContext)
             .setCancelable(false).setView(view)
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 mOnFinishListener.onSet(
                     taskTitleView.text.toString(),
-                    Date(deadlineDate.getDate() + deadlineTime.time))
+                    LocalDateTime.of(deadlineDate.date, deadlineTime.time))
             }
             .setNegativeButton(R.string.cancel) { _: DialogInterface?, _: Int -> mOnFinishListener.onCancel() }
             .setTitle(mTitle)
             .create()
     }
-
-
 }

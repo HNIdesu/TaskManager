@@ -13,8 +13,9 @@ import com.hnidesu.taskmanager.base.TaskCollection
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx.OnCheckChangeListener
-import java.text.SimpleDateFormat
-import java.util.Locale
+import org.threeten.bp.Instant
+import org.threeten.bp.ZoneId
+import org.threeten.bp.format.DateTimeFormatter
 
 
 class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
@@ -60,9 +61,8 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
             mContext.startActivity(intent)
         }
         holder.titleView.text = item.title
-        holder.deadlineView.text ="${mContext.getString(R.string.deadline)}:${SimpleDateFormat(
-            "yyyy-MM-dd HH:mm", Locale.US
-        ).format(item.deadline)}"
+        val deadlineSting=Instant.ofEpochMilli(item.deadline).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        holder.deadlineView.text = String.format(mContext.getString(R.string.deadline_format), deadlineSting)
         holder.finishCheckBox.setChecked(item.isFinished == 1)
         holder.itemView.setOnLongClickListener {
             selectedIndex = holder.adapterPosition

@@ -5,52 +5,36 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatEditText
-import java.util.Date
-
+import org.threeten.bp.LocalTime
+import org.threeten.bp.format.DateTimeFormatter
 
 @SuppressLint("ClickableViewAccessibility")
-class TimeEditView(context: Context, attrs: AttributeSet?) : AppCompatEditText(
+class TimeEditView(context: Context, attrs: AttributeSet? = null) : AppCompatEditText(
     context, attrs
 ) {
-    private var hour: Int
+    var time: LocalTime = LocalTime.now()
+        set(value) {
+            setText(DateTimeFormatter.ofPattern("HH:mm").format(value))
+            field = value
+        }
     private var mTouchFlag = false
-    private var minute = 0
 
     init {
-        hour = -1
+        setText(DateTimeFormatter.ofPattern("HH:mm").format(time))
         setOnTouchListener { _, _ ->
             if (mTouchFlag) {
                 return@setOnTouchListener false
             }
             mTouchFlag = true
-            if (hour == -1) {
-                val date = Date(System.currentTimeMillis())
-                setTime(date.hours, date.minutes)
-            }
             val dialog = TimePickerDialog(context, { timePicker, _, _ ->
-                setText(String.format("%02d:%02d", timePicker.hour, timePicker.minute))
-                setTime(timePicker.hour, timePicker.minute)
-            }, hour, minute, true)
+                time = LocalTime.of(timePicker.hour, timePicker.minute)
+            }, time.hour, time.minute, true)
             dialog.setOnDismissListener { _ ->
                 mTouchFlag = false
             }
             dialog.show()
             return@setOnTouchListener true
         }
-    }
-
-    val time: Long
-        get() {
-            val date = Date(0L)
-            date.hours = hour
-            date.minutes = minute
-            return date.time
-        }
-
-    fun setTime(hour: Int, minute: Int) {
-        this.hour = hour
-        this.minute = minute
-        setText(String.format("%02d:%02d", hour, minute))
     }
 
 }

@@ -22,7 +22,7 @@ import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
 import com.hnidesu.taskmanager.adapter.TaskListAdapter
 import com.hnidesu.taskmanager.base.SortType
-import com.hnidesu.taskmanager.base.TaskCollection
+import com.hnidesu.taskmanager.collection.SortedTaskList
 import com.hnidesu.taskmanager.base.filter.Filter
 import com.hnidesu.taskmanager.base.filter.FilterChain
 import com.hnidesu.taskmanager.database.TaskEntity
@@ -37,7 +37,7 @@ import kotlin.concurrent.thread
 
 class TaskListFragment : Fragment() {
     private var mAutoUpdate = false
-    val mDataSource = TaskCollection()
+    val mDataSource = SortedTaskList()
     private val mFilterOption = object {
         var hideExpiredTask:Boolean=false
         var hideFinishedTask:Boolean=false

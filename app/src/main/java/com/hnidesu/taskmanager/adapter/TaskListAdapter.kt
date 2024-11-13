@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
-import com.hnidesu.taskmanager.base.TaskCollection
+import com.hnidesu.taskmanager.collection.SortedTaskList
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx.OnCheckChangeListener
@@ -19,7 +19,7 @@ import org.threeten.bp.format.DateTimeFormatter
 
 
 class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
-    var taskSource: TaskCollection? = null
+    var taskSource: SortedTaskList? = null
         set(value) {
             field = value
             notifyDataSetChanged()

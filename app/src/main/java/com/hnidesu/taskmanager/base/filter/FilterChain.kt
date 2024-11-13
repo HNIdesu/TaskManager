@@ -13,8 +13,6 @@ class FilterChain<T>(vararg filters: Filter<T>) {
         return mFilterChain.all {filter->
             filter.match(t)
         }
-
-        return true
     }
 
     fun add(filter: Filter<T>) {

@@ -6,10 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
-import com.hnidesu.taskmanager.collection.SortedTaskList
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx.OnCheckChangeListener
@@ -18,11 +18,26 @@ import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
 
 
-class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
-    var taskSource: SortedTaskList? = null
+class TaskListAdapter(private val mContext: Context) :
+    RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
+    var itemList: List<TaskEntity> = listOf()
         set(value) {
+            val result=DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                override fun getOldListSize(): Int {
+                    return field.size
+                }
+                override fun getNewListSize(): Int {
+                    return value.size
+                }
+                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    return field[oldItemPosition].createTime == value[newItemPosition].createTime
+                }
+                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    return field[oldItemPosition] == value[newItemPosition]
+                }
+            })
             field = value
-            notifyDataSetChanged()
+            result.dispatchUpdatesTo(this)
         }
     var selectedIndex = -1
     var onTaskFinishChangeListener: OnTaskFinishChangeListener? = null
@@ -45,8 +60,7 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
 
 
     override fun onBindViewHolder(holder: ViewHolder, p: Int) {
-        val position=holder.adapterPosition
-        val item=taskSource?.get(position) ?: return
+        val item= itemList[p]
         holder.finishCheckBox.setOnCheckChangeListener(object : OnCheckChangeListener {
             override fun onChecked() {
                 onTaskFinishChangeListener?.onFinish(item)
@@ -72,8 +86,6 @@ class TaskListAdapter(private val mContext: Context) : RecyclerView.Adapter<Task
 
 
     override fun getItemCount(): Int {
-        return taskSource?.size ?: 0
+        return itemList.size
     }
-
-
 }

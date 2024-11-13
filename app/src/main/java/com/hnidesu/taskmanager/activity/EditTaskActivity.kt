@@ -31,7 +31,7 @@ class EditTaskActivity : AppCompatActivity() {
                 val entity=mEntity?:return
                 val taskTitle = entity.title
                 val supportActionBar = supportActionBar
-                supportActionBar?.setTitle(taskTitle)
+                supportActionBar?.title = taskTitle
                 mPreviousTextHash = HashUtil.crc32Digest(entity.content)
                 editText.setTextChangeListener(object : TextChangeListener {
                     override fun onTextChange(view: View?, text: CharSequence?) {
@@ -50,8 +50,10 @@ class EditTaskActivity : AppCompatActivity() {
 
                             R.id.option_save -> {
                                 val content = editText.getText().toString()
-                                entity.content = content
-                                TaskManager.updateTask(this@EditTaskActivity,entity)
+                                TaskManager.updateTask(entity.copy(
+                                    content = content,
+                                    lastModifiedTime = System.currentTimeMillis()
+                                ))
                                 mPreviousTextHash = HashUtil.crc32Digest(content)
                                 supportActionBar?.setTitle(taskTitle)
                                 true
@@ -90,8 +92,10 @@ class EditTaskActivity : AppCompatActivity() {
                 getString(R.string.save)
                 ) { _, _ ->
                     try {
-                        entity.content = temp
-                        TaskManager.updateTask(this,entity)
+                        TaskManager.updateTask(entity.copy(
+                            content = temp,
+                            lastModifiedTime = System.currentTimeMillis()
+                        ))
                         finish()
                     } catch (e: Exception) {
                         ToastUtil.toastLong(this,getString(R.string.save_failed))
@@ -109,7 +113,7 @@ class EditTaskActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_task)
         val taskId=intent.getLongExtra("task_id",0)
-        TaskManager.findTask(this@EditTaskActivity,taskId)?.also {
+        TaskManager.findTask(taskId)?.also {
             mEntity=it
         }
         mViewHolder=ViewHolder().also {

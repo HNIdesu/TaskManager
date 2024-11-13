@@ -12,10 +12,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.MainActivity
-import com.hnidesu.taskmanager.base.DatabaseTaskSource
 import com.hnidesu.taskmanager.base.filter.Filter
 import com.hnidesu.taskmanager.base.filter.FilterChain
 import com.hnidesu.taskmanager.database.TaskEntity
+import com.hnidesu.taskmanager.manager.TaskManager
 import java.util.Timer
 import java.util.TimerTask
 
@@ -52,17 +52,15 @@ class CheckDeadlineService : Service() {
 
     private inner class CheckDeadlineTask : TimerTask() {
         override fun run() {
-            val tasks=
-                DatabaseTaskSource(this@CheckDeadlineService).getTasks(FilterChain(object : Filter<TaskEntity> {
-                    override fun match(t: TaskEntity): Boolean {
-                        val deadline = t.deadline
-                        val now = System.currentTimeMillis()
-                        return deadline > now && deadline - now <= 600000
-                    }
-                }))
+            val tasks= TaskManager.getTasks(FilterChain(object : Filter<TaskEntity> {
+                override fun match(t: TaskEntity): Boolean {
+                    val deadline = t.deadline
+                    val now = System.currentTimeMillis()
+                    return deadline > now && deadline - now <= 600000
+                }
+            }))
             val checkDeadlineService = this@CheckDeadlineService
             for (taskItem in tasks) {
-                if(taskItem==null)continue
                 if (!checkDeadlineService.mLastCheckedTasks.contains(taskItem.createTime)) {
                     val message = String.format(
                         checkDeadlineService.getString(R.string.task_will_end_in_minutes),

@@ -9,17 +9,17 @@ import java.io.Serializable
 data class TaskEntity(
     @PrimaryKey
     @ColumnInfo(name = "create_time")
-    var createTime: Long,
+    val createTime: Long,
     @ColumnInfo(name = "content")
-    var content: String,
+    val content: String,
     @ColumnInfo(name = "title")
-    var title: String,
+    val title: String,
     @ColumnInfo(name = "is_finished")
-    var isFinished: Int,
+    val isFinished: Int,
     @ColumnInfo(name = "deadline")
-    var deadline: Long,
+    val deadline: Long,
     @ColumnInfo(name = "last_modified_time")
-    var lastModifiedTime: Long,
+    val lastModifiedTime: Long,
     @ColumnInfo(name = "is_encrypted")
-    var isEncrypted: Int
+    val isEncrypted: Int
 ) : Serializable

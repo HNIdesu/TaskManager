@@ -33,7 +33,7 @@ class SettingFragment : PreferenceFragmentCompat() {
                 context.contentResolver.openOutputStream(data)?.use { outputStream ->
                     val json=JSONObject()
                     json.put("version",1)
-                    val taskList= TaskManager.getTasks(context,null)
+                    val taskList= TaskManager.getTasks()
                     val taskListJsonArray=JSONArray()
                     json.put("tasks",taskListJsonArray)
                     for (task in taskList) {

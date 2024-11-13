@@ -1,42 +1,107 @@
 package com.hnidesu.taskmanager.manager
 
 import android.content.Context
-import com.hnidesu.taskmanager.base.DatabaseTaskSource
 import com.hnidesu.taskmanager.base.filter.FilterChain
+import com.hnidesu.taskmanager.database.MyDatabase
 import com.hnidesu.taskmanager.database.TaskEntity
+import com.hnidesu.taskmanager.eventbus.TaskListChangeEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.greenrobot.eventbus.EventBus
 
-object TaskManager{
-    fun getTasks(context:Context,filterChain: FilterChain<TaskEntity>?): Sequence<TaskEntity> {
-        return DatabaseTaskSource(context).getTasks(filterChain)
+object TaskManager {
+    private var isInitialized = false
+
+    @Throws(IllegalStateException::class)
+    fun assertInitialized() {
+        if (!isInitialized)
+            throw IllegalStateException("TaskManager is not initialized")
     }
 
-    fun setTaskFinish(context:Context, entity: TaskEntity, finish: Boolean): Boolean {
-        val fin=if(finish)1 else 0
-        return if (entity.isFinished != fin) {
-            entity.isFinished = fin
-            DatabaseTaskSource(context).updateTask(entity)
-            true
-        }else false
+
+    private lateinit var mDatabase: MyDatabase
+    private lateinit var mInnerTaskCollection: MutableMap<Long, TaskEntity>
+
+    fun init(context: Context) {
+        mDatabase = DatabaseManager.getMyDatabase(context)
+        mInnerTaskCollection = runBlocking {
+            val map = mutableMapOf<Long, TaskEntity>()
+            mDatabase.taskDao.allTasks().forEach {
+                map[it.createTime] = it
+            }
+            map
+        }
+        isInitialized = true
     }
 
-    fun findTask(context:Context,id:Long): TaskEntity? {
-        return DatabaseTaskSource(context).findTask(id)
+    @Throws(IllegalStateException::class)
+    fun getTasks(filterChain: FilterChain<TaskEntity>? = null): List<TaskEntity> {
+        assertInitialized()
+        return mInnerTaskCollection.values.filter {
+            filterChain?.match(it) ?: true
+        }
     }
 
-    fun addTask(context:Context,item: TaskEntity) {
-        DatabaseTaskSource(context).addTask(item)
+    @Throws(IllegalStateException::class)
+    fun findTask(createTime: Long): TaskEntity? {
+        assertInitialized()
+        return mInnerTaskCollection.get(createTime)
     }
 
-    fun updateTask(context:Context,item: TaskEntity) {
-        DatabaseTaskSource(context).updateTask(item)
+    @Throws(IllegalStateException::class)
+    fun addTask(entity: TaskEntity) {
+        assertInitialized()
+        mInnerTaskCollection[entity.createTime] = entity
+        CoroutineScope(Dispatchers.IO).launch {
+            mDatabase.taskDao.insertTask(entity)
+        }
+        EventBus.getDefault().post(TaskListChangeEvent())
     }
 
-    fun deleteTask(context:Context,task: TaskEntity) {
-        DatabaseTaskSource(context).deleteTask(task)
+    @Throws(IllegalStateException::class)
+    fun updateTask(entity: TaskEntity) {
+        assertInitialized()
+        CoroutineScope(Dispatchers.IO).launch {
+            mDatabase.taskDao.updateTask(entity)
+        }
+        mInnerTaskCollection.put(entity.createTime, entity)
+        EventBus.getDefault().post(TaskListChangeEvent())
     }
 
-    fun clear(context:Context) {
-        DatabaseTaskSource(context).clear()
+    @Throws(IllegalStateException::class)
+    fun addTasks(tasks: Iterable<TaskEntity>) {
+        assertInitialized()
+        CoroutineScope(Dispatchers.IO).launch {
+            tasks.forEach {
+                mDatabase.taskDao.insertTask(it)
+            }
+        }
+        tasks.forEach {
+            mInnerTaskCollection[it.createTime] = it
+        }
+        EventBus.getDefault().post(TaskListChangeEvent())
+    }
+
+    @Throws(IllegalStateException::class)
+    fun deleteTask(entity: TaskEntity) {
+        assertInitialized()
+        CoroutineScope(Dispatchers.IO).launch {
+            mDatabase.taskDao.deleteTask(entity)
+        }
+        mInnerTaskCollection.remove(entity.createTime)
+        EventBus.getDefault().post(TaskListChangeEvent())
+    }
+
+    @Throws(IllegalStateException::class)
+    fun clear() {
+        assertInitialized()
+        CoroutineScope(Dispatchers.IO).launch {
+            mDatabase.taskDao.clear()
+        }
+        mInnerTaskCollection.clear()
+        EventBus.getDefault().post(TaskListChangeEvent())
     }
 
 }

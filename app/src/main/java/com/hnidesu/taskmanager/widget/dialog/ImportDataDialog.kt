@@ -7,8 +7,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.hnidesu.taskmanager.R
-import com.hnidesu.taskmanager.base.DatabaseTaskSource
 import com.hnidesu.taskmanager.database.TaskEntity
+import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.ToastUtil
 
 class ImportDataDialog(context: Context, taskItems: List<TaskEntity>) : Dialog(context) {
@@ -23,12 +23,12 @@ class ImportDataDialog(context: Context, taskItems: List<TaskEntity>) : Dialog(c
         textViewImportInfo = findViewById<View>(R.id.textView_importInfo) as TextView
         btnOverride = findViewById<View>(R.id.btn_override) as Button
         btnAppend = findViewById<View>(R.id.btn_append) as Button
-        setOnDismissListener { dialogInterface ->
+        setOnDismissListener {
             ToastUtil.toastLong(context,R.string.cancelled)
         }
         btnAppend.setOnClickListener {
             try {
-                DatabaseTaskSource(context).importData(taskItems.asSequence())
+                TaskManager.addTasks(taskItems)
                 ToastUtil.toastLong(context,R.string.import_succeed)
             } catch (e: Exception) {
                 ToastUtil.toastLong(context,R.string.import_failed)
@@ -37,10 +37,8 @@ class ImportDataDialog(context: Context, taskItems: List<TaskEntity>) : Dialog(c
         }
         btnOverride.setOnClickListener {
             try {
-                DatabaseTaskSource(context).apply {
-                    clear()
-                    importData(taskItems.asSequence())
-                }
+                TaskManager.clear()
+                TaskManager.addTasks(taskItems)
                 ToastUtil.toastLong(context, R.string.import_succeed)
             } catch (e: Exception) {
                 ToastUtil.toastLong(context, R.string.import_failed)

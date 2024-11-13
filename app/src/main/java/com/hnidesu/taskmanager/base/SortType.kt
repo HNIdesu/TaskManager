@@ -11,10 +11,14 @@ enum class SortType {
 
     companion object  {
         fun reverse(sortType: SortType): SortType {
-            val ordinal = sortType.ordinal
-            return if (ordinal % 2 == 0) {
-                entries[ordinal + 1]
-            } else entries[ordinal - 1]
+            return when(sortType) {
+                CreationAsc -> CreationDesc
+                CreationDesc -> CreationAsc
+                ModifiedAsc -> ModifiedDesc
+                ModifiedDesc -> ModifiedAsc
+                DeadlineAsc -> DeadlineDesc
+                DeadlineDesc -> DeadlineAsc
+            }
         }
     }
 

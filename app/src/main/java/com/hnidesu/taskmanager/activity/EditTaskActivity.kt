@@ -3,11 +3,11 @@ package com.hnidesu.taskmanager.activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.ActionMenuView
+import androidx.core.widget.addTextChangedListener
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.databinding.ActivityEditTaskBinding
@@ -15,7 +15,6 @@ import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.HashUtil
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
-import com.hnidesu.taskmanager.widget.view.EditTextEx.TextChangeListener
 
 class EditTaskActivity : AppCompatActivity() {
     private var mOnMenuItemClickListener: ActionMenuView.OnMenuItemClickListener? = null
@@ -84,12 +83,10 @@ class EditTaskActivity : AppCompatActivity() {
             supportActionBar?.title = taskTitle
             mPreviousTextHash = HashUtil.crc32Digest(entity.content)
             binding.edittext.apply {
-                setTextChangeListener(object : TextChangeListener {
-                    override fun onTextChange(view: View?, text: CharSequence?) {
-                        val hash = HashUtil.crc32Digest(text.toString())
-                        supportActionBar?.setTitle(if (hash != mPreviousTextHash) "$taskTitle*" else taskTitle)
-                    }
-                })
+                addTextChangedListener {
+                    val hash = HashUtil.crc32Digest(text.toString())
+                    supportActionBar?.title = if (hash != mPreviousTextHash) "$taskTitle*" else taskTitle
+                }
                 setText(entity.content)
             }
             mOnMenuItemClickListener = ActionMenuView.OnMenuItemClickListener { item ->
@@ -108,7 +105,7 @@ class EditTaskActivity : AppCompatActivity() {
                             )
                         )
                         mPreviousTextHash = HashUtil.crc32Digest(content)
-                        supportActionBar?.setTitle(taskTitle)
+                        supportActionBar?.title = taskTitle
                         true
                     }
 

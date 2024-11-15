@@ -32,7 +32,7 @@ class SetTaskDialogFactory(
 
     fun create(): Dialog {
         val binding = WindowSetTaskBinding.inflate(LayoutInflater.from(mContext))
-        binding.textviewTitle.text = mDefaultTitle
+        binding.edittextTitle.setText(mDefaultTitle)
         binding.edittextDeadlineDate.date = mDefaultDateTime.toLocalDate()
         binding.edittextDeadlineTime.time = mDefaultDateTime.toLocalTime()
         return AlertDialog.Builder(mContext)

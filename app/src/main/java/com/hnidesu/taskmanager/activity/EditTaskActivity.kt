@@ -10,66 +10,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.ActionMenuView
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.database.TaskEntity
+import com.hnidesu.taskmanager.databinding.ActivityEditTaskBinding
 import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.HashUtil
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
-import com.hnidesu.taskmanager.widget.view.EditTextEx
 import com.hnidesu.taskmanager.widget.view.EditTextEx.TextChangeListener
 
 class EditTaskActivity : AppCompatActivity() {
     private var mOnMenuItemClickListener: ActionMenuView.OnMenuItemClickListener? = null
     private var mPreviousTextHash: Long = 0
-    private var mViewHolder: ViewHolder? = null
-    private var mEntity:TaskEntity?=null
-
-    inner class ViewHolder {
-        val editText: EditTextEx = findViewById(R.id.edittext)
-
-        fun bindViews() {
-            try {
-                val entity=mEntity?:return
-                val taskTitle = entity.title
-                val supportActionBar = supportActionBar
-                supportActionBar?.title = taskTitle
-                mPreviousTextHash = HashUtil.crc32Digest(entity.content)
-                editText.setTextChangeListener(object : TextChangeListener {
-                    override fun onTextChange(view: View?, text: CharSequence?) {
-                        val hash = HashUtil.crc32Digest(text.toString())
-                        supportActionBar?.setTitle(if (hash != mPreviousTextHash) "$taskTitle*" else taskTitle)
-                    }
-                })
-                editText.setText(entity.content)
-                mOnMenuItemClickListener =
-                    ActionMenuView.OnMenuItemClickListener { item ->
-                        when (item.itemId) {
-                            R.id.option_close -> {
-                                onExit()
-                                true
-                            }
-
-                            R.id.option_save -> {
-                                val content = editText.getText().toString()
-                                TaskManager.updateTask(entity.copy(
-                                    content = content,
-                                    lastModifiedTime = System.currentTimeMillis()
-                                ))
-                                mPreviousTextHash = HashUtil.crc32Digest(content)
-                                supportActionBar?.setTitle(taskTitle)
-                                true
-                            }
-
-                            else -> {
-                                false
-                            }
-                        }
-                    }
-            } catch (e: Exception) {
-                editText.setText(R.string.open_editor_failed)
-                LogUtil.error(getString(R.string.open_editor_failed), e)
-            }
-        }
-    }
+    private var mEntity: TaskEntity? = null
+    private var mActivityEditTaskBinding: ActivityEditTaskBinding? = null
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_edit_task_activity, menu)
@@ -83,26 +35,28 @@ class EditTaskActivity : AppCompatActivity() {
     }
 
     fun onExit() {
-        val entity = mEntity?:return
-        val viewHolder = mViewHolder
-        val temp: String? = viewHolder?.editText?.text?.toString()
+        val entity = mEntity ?: return
+        val temp: String? = mActivityEditTaskBinding?.edittext?.getText()?.toString()
         if (temp != null && HashUtil.crc32Digest(temp) != mPreviousTextHash) {
             AlertDialog.Builder(this).setCancelable(false)
                 .setMessage(R.string.request_content_change).setPositiveButton(
-                getString(R.string.save)
+                    getString(R.string.save)
                 ) { _, _ ->
                     try {
-                        TaskManager.updateTask(entity.copy(
-                            content = temp,
-                            lastModifiedTime = System.currentTimeMillis()
-                        ))
+                        TaskManager.updateTask(
+                            entity.copy(
+                                content = temp,
+                                lastModifiedTime = System.currentTimeMillis()
+                            )
+                        )
                         finish()
                     } catch (e: Exception) {
-                        ToastUtil.toastLong(this,getString(R.string.save_failed))
+                        ToastUtil.toastLong(this, getString(R.string.save_failed))
                         LogUtil.error(getString(R.string.save_failed), e)
                     }
                 }
-                .setNegativeButton(R.string.do_not_save
+                .setNegativeButton(
+                    R.string.do_not_save
                 ) { _, _ -> finish() }.create().show()
         } else {
             finish()
@@ -111,19 +65,63 @@ class EditTaskActivity : AppCompatActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_edit_task)
-        val taskId=intent.getLongExtra("task_id",0)
-        TaskManager.findTask(taskId)?.also {
-            mEntity=it
+        val binding = ActivityEditTaskBinding.inflate(layoutInflater).also {
+            mActivityEditTaskBinding = it
         }
-        mViewHolder=ViewHolder().also {
-            it.bindViews()
-        }
+        setContentView(binding.root)
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 onExit()
             }
         })
+
+        try {
+            val taskId = intent.getLongExtra("task_id", 0)
+            val entity = TaskManager.findTask(taskId)!!.also {
+                mEntity = it
+            }
+            val taskTitle = entity.title
+            supportActionBar?.title = taskTitle
+            mPreviousTextHash = HashUtil.crc32Digest(entity.content)
+            binding.edittext.apply {
+                setTextChangeListener(object : TextChangeListener {
+                    override fun onTextChange(view: View?, text: CharSequence?) {
+                        val hash = HashUtil.crc32Digest(text.toString())
+                        supportActionBar?.setTitle(if (hash != mPreviousTextHash) "$taskTitle*" else taskTitle)
+                    }
+                })
+                setText(entity.content)
+            }
+            mOnMenuItemClickListener = ActionMenuView.OnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.option_close -> {
+                        onExit()
+                        true
+                    }
+
+                    R.id.option_save -> {
+                        val content = binding.edittext.getText().toString()
+                        TaskManager.updateTask(
+                            entity.copy(
+                                content = content,
+                                lastModifiedTime = System.currentTimeMillis()
+                            )
+                        )
+                        mPreviousTextHash = HashUtil.crc32Digest(content)
+                        supportActionBar?.setTitle(taskTitle)
+                        true
+                    }
+
+                    else -> {
+                        false
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            binding.edittext.setText(R.string.open_editor_failed)
+            LogUtil.error(getString(R.string.open_editor_failed), e)
+        }
+
     }
 
 }

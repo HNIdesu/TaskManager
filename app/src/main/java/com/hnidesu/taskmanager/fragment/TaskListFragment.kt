@@ -10,14 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.CheckBox
-import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
 import com.hnidesu.taskmanager.adapter.TaskListAdapter
@@ -25,6 +20,7 @@ import com.hnidesu.taskmanager.base.SortType
 import com.hnidesu.taskmanager.base.filter.Filter
 import com.hnidesu.taskmanager.base.filter.FilterChain
 import com.hnidesu.taskmanager.database.TaskEntity
+import com.hnidesu.taskmanager.databinding.FragmentTaskListBinding
 import com.hnidesu.taskmanager.eventbus.TaskListChangeEvent
 import com.hnidesu.taskmanager.manager.SettingManager
 import com.hnidesu.taskmanager.manager.TaskManager
@@ -45,8 +41,8 @@ class TaskListFragment : Fragment() {
         var reverseSort: Boolean = false
         var sortType: SortType = SortType.CreationAsc
     }
-    private var mItemView: View? = null
-    private var mAutoUpdate:Boolean=false
+    private var mFragmentTaskListBinding: FragmentTaskListBinding? = null
+    private var mAutoUpdate: Boolean = false
     private var mRecyclerViewAdapter: TaskListAdapter? = null
 
     override fun onCreateView(
@@ -54,14 +50,15 @@ class TaskListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val itemView = inflater.inflate(R.layout.fragment_task_list, container, false)
-        return itemView
+        return FragmentTaskListBinding.inflate(layoutInflater).also {
+            mFragmentTaskListBinding = it
+        }.root
     }
 
     override fun onViewCreated(itemView: View, savedInstanceState: Bundle?) {
         super.onViewCreated(itemView, savedInstanceState)
-        mAutoUpdate=false
-        mItemView = itemView
+        val binding = mFragmentTaskListBinding!!
+        mAutoUpdate = false
         val context = requireContext()
         val adapter = TaskListAdapter(context).also {
             mRecyclerViewAdapter = it
@@ -85,84 +82,82 @@ class TaskListFragment : Fragment() {
 
         }
 
-        itemView.findViewById<RecyclerView>(R.id.recyclerview).apply {
+        binding.recyclerview.apply {
             setAdapter(mRecyclerViewAdapter)
             registerForContextMenu(this)
         }
 
-        val drawerLayout: DrawerLayout = itemView.findViewById(R.id.drawer_layout)
-        itemView.findViewById<View>(R.id.button_filter_task).setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.END)
+        binding.buttonFilterTask.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.END)
         }
-        itemView.findViewById<View>(R.id.button_add_task)
-            .setOnClickListener {
-                SetTaskDialogFactory(
-                    context,
-                    object : SetTaskDialogFactory.OnFinishListener {
-                        override fun onCancel() {}
+        binding.buttonAddTask.setOnClickListener {
+            SetTaskDialogFactory(
+                context,
+                object : SetTaskDialogFactory.OnFinishListener {
+                    override fun onCancel() {}
 
-                        override fun onSet(title: String, date: LocalDateTime) {
-                            val current = System.currentTimeMillis()
-                            val taskEntity = TaskEntity(
-                                current,
-                                "",
-                                title,
-                                0,
-                                date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                                current,
-                                0
-                            )
-                            TaskManager.addTask(taskEntity)
-                            ToastUtil.toastShort(context, R.string.add_success)
-                            val intent = Intent(context, EditTaskActivity::class.java).apply {
-                                putExtra("task_id", taskEntity.createTime)
-                            }
-                            startActivity(intent)
+                    override fun onSet(title: String, date: LocalDateTime) {
+                        val current = System.currentTimeMillis()
+                        val taskEntity = TaskEntity(
+                            current,
+                            "",
+                            title,
+                            0,
+                            date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                            current,
+                            0
+                        )
+                        TaskManager.addTask(taskEntity)
+                        ToastUtil.toastShort(context, R.string.add_success)
+                        val intent = Intent(context, EditTaskActivity::class.java).apply {
+                            putExtra("task_id", taskEntity.createTime)
                         }
+                        startActivity(intent)
+                    }
 
-                    },
-                    getString(R.string.add_task)
-                ).create().show()
-            }
+                },
+                getString(R.string.add_task)
+            ).create().show()
+        }
         val sharedPrefs = SettingManager.getDefaultSetting(context)
         val binder = mapOf(
             0 to SortType.CreationAsc,
             1 to SortType.ModifiedAsc,
             2 to SortType.DeadlineAsc
         )
-        itemView.findViewById<SwitchCompat>(R.id.switch_hide_expired_task).apply {
+
+        binding.filterPanel.switchHideExpiredTask.apply {
             setOnCheckedChangeListener { _, z ->
                 mFilterOption.hideExpiredTask = z
                 sharedPrefs.edit().putBoolean("hide_expired_task", z).apply()
-                if(mAutoUpdate)
+                if (mAutoUpdate)
                     update()
             }
-            isChecked=sharedPrefs.getBoolean("hide_expired_task", false)
+            isChecked = sharedPrefs.getBoolean("hide_expired_task", false)
         }
-
-        itemView.findViewById<SwitchCompat>(R.id.switch_hide_finished_task).apply {
+        binding.filterPanel.switchHideFinishedTask.apply {
             setOnCheckedChangeListener { _, z ->
                 mFilterOption.hideFinishedTask = z
                 sharedPrefs.edit().putBoolean("hide_finished_task", z).apply()
-                if(mAutoUpdate)
+                if (mAutoUpdate)
                     update()
             }
-            isChecked=sharedPrefs.getBoolean("hide_finished_task", false)
+            isChecked = sharedPrefs.getBoolean("hide_finished_task", false)
         }
 
-        itemView.findViewById<CheckBox>(R.id.checkbox_reverse).apply {
+        binding.filterPanel.checkboxReverse.apply {
             setOnCheckedChangeListener { _, z ->
                 if (mFilterOption.reverseSort != z) {
                     mFilterOption.reverseSort = z
                     sharedPrefs.edit().putBoolean("reverse_sort", z).apply()
-                    if(mAutoUpdate)
+                    if (mAutoUpdate)
                         update()
                 }
             }
-            isChecked=sharedPrefs.getBoolean("reverse_sort", false)
+            isChecked = sharedPrefs.getBoolean("reverse_sort", false)
         }
 
-        itemView.findViewById<Spinner>(R.id.spinner_sort).apply {
+        binding.filterPanel.spinnerSort.apply {
             setAdapter(
                 ArrayAdapter(
                     context,
@@ -189,7 +184,7 @@ class TaskListFragment : Fragment() {
                     if (binder.containsKey(position)) {
                         sharedPrefs.edit().putInt("sort_by", position).apply()
                     }
-                    if(mAutoUpdate)
+                    if (mAutoUpdate)
                         update()
                 }
 
@@ -197,7 +192,7 @@ class TaskListFragment : Fragment() {
             }
             setSelection(sharedPrefs.getInt("sort_by", 0))
         }
-        mAutoUpdate=true
+        mAutoUpdate = true
         update()
         EventBus.getDefault().register(this)
     }

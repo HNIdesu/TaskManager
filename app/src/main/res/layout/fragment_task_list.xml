@@ -4,9 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -16,8 +18,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/simple_button_background"
-                android:textSize="16sp"
                 android:text="@string/create_new_task"
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <Button
@@ -25,8 +27,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/simple_button_background"
-                android:textSize="16sp"
                 android:text="@string/filter"
+                android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
@@ -48,7 +50,9 @@
             android:layout_height="match_parent"
             android:layout_gravity="end">
 
-            <include layout="@layout/layout_filter_panel" />
+            <include
+                android:id="@+id/filter_panel"
+                layout="@layout/layout_filter_panel" />
         </com.google.android.material.navigation.NavigationView>
     </androidx.drawerlayout.widget.DrawerLayout>
 </LinearLayout>

@@ -2,15 +2,13 @@ package com.hnidesu.taskmanager.adapter
 
 import android.content.Intent
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
 import com.hnidesu.taskmanager.database.TaskEntity
-import com.hnidesu.taskmanager.widget.view.CheckBoxEx
+import com.hnidesu.taskmanager.databinding.ItemTaskBinding
 import com.hnidesu.taskmanager.widget.view.CheckBoxEx.OnCheckChangeListener
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
@@ -51,22 +49,27 @@ class TaskListAdapter : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
         fun onNotFinish(taskItem: TaskEntity?)
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val deadlineView: TextView = itemView.findViewById<View>(R.id.textview_deadline) as TextView
-        val finishCheckBox: CheckBoxEx =
-            itemView.findViewById<View>(R.id.checkbox_is_finished) as CheckBoxEx
-        val titleView: TextView = itemView.findViewById<View>(R.id.textview_title) as TextView
-    }
+    class ViewHolder(
+        val binding: ItemTaskBinding
+    ) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val root = LayoutInflater.from(parent.context).inflate(R.layout.item_task, parent, false)
-        return ViewHolder(root)
+        return ViewHolder(
+            ItemTaskBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
     }
 
 
     override fun onBindViewHolder(holder: ViewHolder, p: Int) {
         val item = itemList[p]
-        holder.finishCheckBox.setOnCheckChangeListener(object : OnCheckChangeListener {
+        val binding = holder.binding
+        val context = holder.itemView.context
+        binding.checkboxIsFinished.isChecked = item.isFinished == 1
+        binding.checkboxIsFinished.setOnCheckChangeListener(object : OnCheckChangeListener {
             override fun onChecked() {
                 onTaskFinishChangeListener?.onFinish(item)
             }
@@ -75,20 +78,19 @@ class TaskListAdapter : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
                 onTaskFinishChangeListener?.onNotFinish(item)
             }
         })
-        holder.itemView.setOnClickListener { _ ->
-            val intent = Intent(holder.itemView.context, EditTaskActivity::class.java)
-            intent.putExtra("task_id", item.createTime)
-            holder.itemView.context.startActivity(intent)
-        }
-        holder.titleView.text = item.title
+        binding.textviewTitle.text = item.title
         val deadlineString = Instant.ofEpochMilli(item.deadline).atZone(ZoneId.systemDefault())
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-        holder.deadlineView.text = String.format(
-            holder.itemView.context.getString(R.string.deadline_format),
+        binding.textviewDeadline.text = String.format(
+            context.getString(R.string.deadline_format),
             deadlineString
         )
-        holder.finishCheckBox.setChecked(item.isFinished == 1)
-        holder.itemView.setOnLongClickListener {
+        binding.root.setOnClickListener { _ ->
+            val intent = Intent(context, EditTaskActivity::class.java)
+            intent.putExtra("task_id", item.createTime)
+            context.startActivity(intent)
+        }
+        binding.root.setOnLongClickListener {
             selectedIndex = holder.adapterPosition
             false
         }

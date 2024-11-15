@@ -26,6 +26,9 @@ import com.hnidesu.taskmanager.manager.SettingManager
 import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.ToastUtil
 import com.hnidesu.taskmanager.widget.dialog.SetTaskDialogFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -64,17 +67,21 @@ class TaskListFragment : Fragment() {
             override fun onFinish(taskItem: TaskEntity?) {
                 if (taskItem == null)
                     return
-                TaskManager.updateTask(
-                    taskItem.copy(isFinished = 1, lastModifiedTime = System.currentTimeMillis())
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    TaskManager.updateTask(
+                        taskItem.copy(isFinished = 1, lastModifiedTime = System.currentTimeMillis())
+                    )
+                }
             }
 
             override fun onNotFinish(taskItem: TaskEntity?) {
                 if (taskItem == null)
                     return
-                TaskManager.updateTask(
-                    taskItem.copy(isFinished = 0, lastModifiedTime = System.currentTimeMillis())
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    TaskManager.updateTask(
+                        taskItem.copy(isFinished = 0, lastModifiedTime = System.currentTimeMillis())
+                    )
+                }
             }
 
         }
@@ -104,7 +111,9 @@ class TaskListFragment : Fragment() {
                             current,
                             0
                         )
-                        TaskManager.addTask(taskEntity)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            TaskManager.addTask(taskEntity)
+                        }
                         ToastUtil.toastShort(context, R.string.add_success)
                         val intent = Intent(context, EditTaskActivity::class.java).apply {
                             putExtra("task_id", taskEntity.createTime)
@@ -222,7 +231,9 @@ class TaskListFragment : Fragment() {
                     ) { _, _ ->
                         val selectedIndex = adapter.selectedIndex
                         val selectedItem = adapter.itemList[selectedIndex]
-                        TaskManager.deleteTask(selectedItem)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            TaskManager.deleteTask(selectedItem)
+                        }
                     }.setOnCancelListener { }.create().show()
                 return true
             }
@@ -246,7 +257,9 @@ class TaskListFragment : Fragment() {
                                     .toEpochMilli(),
                                 lastModifiedTime = System.currentTimeMillis()
                             )
-                            TaskManager.updateTask(newItem)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                TaskManager.updateTask(newItem)
+                            }
                         }
                     },
                     getString(R.string.edit_task)

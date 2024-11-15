@@ -17,6 +17,7 @@ import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.service.CheckDeadlineService
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -96,11 +97,15 @@ class SettingFragment : PreferenceFragmentCompat() {
                     AlertDialog.Builder(context)
                         .setCancelable(true)
                         .setPositiveButton(R.string.append) { _, _ ->
-                            TaskManager.addTasks(taskList)
+                            runBlocking {
+                                TaskManager.addTasks(taskList)
+                            }
                             ToastUtil.toastLong(context, R.string.import_succeed)
                         }.setNegativeButton(R.string.override) { _, _ ->
-                            TaskManager.clear()
-                            TaskManager.addTasks(taskList)
+                            runBlocking {
+                                TaskManager.clear()
+                                TaskManager.addTasks(taskList)
+                            }
                             ToastUtil.toastLong(context, R.string.import_succeed)
                         }.setOnCancelListener {
                             ToastUtil.toastShort(context, R.string.cancelled)

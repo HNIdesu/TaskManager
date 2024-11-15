@@ -15,6 +15,7 @@ import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.HashUtil
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
+import kotlinx.coroutines.runBlocking
 
 class EditTaskActivity : AppCompatActivity() {
     private var mOnMenuItemClickListener: ActionMenuView.OnMenuItemClickListener? = null
@@ -42,12 +43,14 @@ class EditTaskActivity : AppCompatActivity() {
                     getString(R.string.save)
                 ) { _, _ ->
                     try {
-                        TaskManager.updateTask(
-                            entity.copy(
-                                content = temp,
-                                lastModifiedTime = System.currentTimeMillis()
+                        runBlocking {
+                            TaskManager.updateTask(
+                                entity.copy(
+                                    content = temp,
+                                    lastModifiedTime = System.currentTimeMillis()
+                                )
                             )
-                        )
+                        }
                         finish()
                     } catch (e: Exception) {
                         ToastUtil.toastLong(this, getString(R.string.save_failed))
@@ -98,12 +101,14 @@ class EditTaskActivity : AppCompatActivity() {
 
                     R.id.option_save -> {
                         val content = binding.edittext.getText().toString()
-                        TaskManager.updateTask(
-                            entity.copy(
-                                content = content,
-                                lastModifiedTime = System.currentTimeMillis()
+                        runBlocking {
+                            TaskManager.updateTask(
+                                entity.copy(
+                                    content = content,
+                                    lastModifiedTime = System.currentTimeMillis()
+                                )
                             )
-                        )
+                        }
                         mPreviousTextHash = HashUtil.crc32Digest(content)
                         supportActionBar?.title = taskTitle
                         true

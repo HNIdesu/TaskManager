@@ -5,22 +5,20 @@ import com.hnidesu.taskmanager.base.filter.FilterChain
 import com.hnidesu.taskmanager.database.MyDatabase
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.eventbus.TaskListChangeEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 
 object TaskManager {
-    private var isInitialized = false
-
     @Throws(IllegalStateException::class)
     fun assertInitialized() {
-        if (!isInitialized)
+        if (!mIsInitialized)
             throw IllegalStateException("TaskManager is not initialized")
     }
 
-
+    private var mIsInitialized = false
+    private val mSingleThreadContext = newSingleThreadContext("TaskManagerContext")
     private lateinit var mDatabase: MyDatabase
     private lateinit var mInnerTaskCollection: MutableMap<Long, TaskEntity>
 
@@ -33,7 +31,7 @@ object TaskManager {
             }
             map
         }
-        isInitialized = true
+        mIsInitialized = true
     }
 
     @Throws(IllegalStateException::class)
@@ -47,60 +45,60 @@ object TaskManager {
     @Throws(IllegalStateException::class)
     fun findTask(createTime: Long): TaskEntity? {
         assertInitialized()
-        return mInnerTaskCollection.get(createTime)
+        return mInnerTaskCollection[createTime]
     }
 
     @Throws(IllegalStateException::class)
-    fun addTask(entity: TaskEntity) {
+    suspend fun addTask(entity: TaskEntity) {
         assertInitialized()
-        mInnerTaskCollection[entity.createTime] = entity
-        CoroutineScope(Dispatchers.IO).launch {
-            mDatabase.taskDao.insertTask(entity)
+        mDatabase.taskDao.insertTask(entity)
+        withContext(mSingleThreadContext) {
+            mInnerTaskCollection[entity.createTime] = entity
         }
         EventBus.getDefault().post(TaskListChangeEvent())
     }
 
     @Throws(IllegalStateException::class)
-    fun updateTask(entity: TaskEntity) {
+    suspend fun updateTask(entity: TaskEntity) {
         assertInitialized()
-        CoroutineScope(Dispatchers.IO).launch {
-            mDatabase.taskDao.updateTask(entity)
+        mDatabase.taskDao.updateTask(entity)
+        withContext(mSingleThreadContext) {
+            mInnerTaskCollection[entity.createTime] = entity
         }
-        mInnerTaskCollection.put(entity.createTime, entity)
         EventBus.getDefault().post(TaskListChangeEvent())
     }
 
     @Throws(IllegalStateException::class)
-    fun addTasks(tasks: Iterable<TaskEntity>) {
+    suspend fun addTasks(tasks: Iterable<TaskEntity>) {
         assertInitialized()
-        CoroutineScope(Dispatchers.IO).launch {
+        tasks.forEach {
+            mDatabase.taskDao.insertTask(it)
+        }
+        withContext(mSingleThreadContext) {
             tasks.forEach {
-                mDatabase.taskDao.insertTask(it)
+                mInnerTaskCollection[it.createTime] = it
             }
         }
-        tasks.forEach {
-            mInnerTaskCollection[it.createTime] = it
+        EventBus.getDefault().post(TaskListChangeEvent())
+    }
+
+    @Throws(IllegalStateException::class)
+    suspend fun deleteTask(entity: TaskEntity) {
+        assertInitialized()
+        mDatabase.taskDao.deleteTask(entity)
+        withContext(mSingleThreadContext) {
+            mInnerTaskCollection.remove(entity.createTime)
         }
         EventBus.getDefault().post(TaskListChangeEvent())
     }
 
     @Throws(IllegalStateException::class)
-    fun deleteTask(entity: TaskEntity) {
+    suspend fun clear() {
         assertInitialized()
-        CoroutineScope(Dispatchers.IO).launch {
-            mDatabase.taskDao.deleteTask(entity)
+        mDatabase.taskDao.clear()
+        withContext(mSingleThreadContext) {
+            mInnerTaskCollection.clear()
         }
-        mInnerTaskCollection.remove(entity.createTime)
-        EventBus.getDefault().post(TaskListChangeEvent())
-    }
-
-    @Throws(IllegalStateException::class)
-    fun clear() {
-        assertInitialized()
-        CoroutineScope(Dispatchers.IO).launch {
-            mDatabase.taskDao.clear()
-        }
-        mInnerTaskCollection.clear()
         EventBus.getDefault().post(TaskListChangeEvent())
     }
 

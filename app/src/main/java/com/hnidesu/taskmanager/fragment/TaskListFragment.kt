@@ -167,7 +167,7 @@ class TaskListFragment : Fragment() {
             setAdapter(
                 ArrayAdapter(
                     context,
-                    R.layout.list_item,
+                    R.layout.item_sort_option,
                     arrayOf(
                         getString(R.string.creation_date),
                         getString(R.string.last_modified_date),

@@ -4,11 +4,9 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.view.LayoutInflater
-import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.hnidesu.taskmanager.R
-import com.hnidesu.taskmanager.widget.view.DateEditView
-import com.hnidesu.taskmanager.widget.view.TimeEditView
+import com.hnidesu.taskmanager.databinding.WindowSetTaskBinding
 import org.threeten.bp.LocalDateTime
 
 class SetTaskDialogFactory(
@@ -23,30 +21,30 @@ class SetTaskDialogFactory(
         fun onSet(title: String, date: LocalDateTime)
     }
 
-    constructor(context: Context, listener: OnFinishListener, title: String):
-        this(
-            context,
-            LocalDateTime.now(),
-            context.getString(R.string.untitled_task),
-            listener,
-            title
-        )
+    constructor(context: Context, listener: OnFinishListener, title: String) :
+            this(
+                context,
+                LocalDateTime.now(),
+                context.getString(R.string.untitled_task),
+                listener,
+                title
+            )
 
     fun create(): Dialog {
-        val view = LayoutInflater.from(mContext)
-            .inflate(R.layout.window_set_task, null, false)
-        val taskTitleView = view.findViewById<EditText>(R.id.edittext_title)
-        val deadlineDate = view.findViewById<DateEditView>(R.id.edittext_deadline_date)
-        val deadlineTime = view.findViewById<TimeEditView>(R.id.edittext_deadline_time)
-        taskTitleView.setText(mDefaultTitle)
-        deadlineDate.date = mDefaultDateTime.toLocalDate()
-        deadlineTime.time = mDefaultDateTime.toLocalTime()
+        val binding = WindowSetTaskBinding.inflate(LayoutInflater.from(mContext))
+        binding.textviewTitle.text = mDefaultTitle
+        binding.edittextDeadlineDate.date = mDefaultDateTime.toLocalDate()
+        binding.edittextDeadlineTime.time = mDefaultDateTime.toLocalTime()
         return AlertDialog.Builder(mContext)
-            .setCancelable(false).setView(view)
+            .setCancelable(false).setView(binding.root)
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 mOnFinishListener.onSet(
-                    taskTitleView.text.toString(),
-                    LocalDateTime.of(deadlineDate.date, deadlineTime.time))
+                    binding.textviewTitle.text.toString(),
+                    LocalDateTime.of(
+                        binding.edittextDeadlineDate.date,
+                        binding.edittextDeadlineTime.time
+                    )
+                )
             }
             .setNegativeButton(R.string.cancel) { _: DialogInterface?, _: Int -> mOnFinishListener.onCancel() }
             .setTitle(mTitle)

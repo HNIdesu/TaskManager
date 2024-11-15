@@ -1,12 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="MyActionBar" parent="@style/Widget.AppCompat.ActionBar">
-        <item name="background">@color/toolbar_background_color</item>
-        <item name="titleTextStyle">@style/MyActionBarTitleText</item>
-    </style>
-
-    <style name="MyActionBarTitleText" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
-        <item name="android:textColor">@color/white</item>
-    </style>
 </resources>

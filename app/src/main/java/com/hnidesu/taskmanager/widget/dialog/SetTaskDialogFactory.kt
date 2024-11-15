@@ -39,7 +39,7 @@ class SetTaskDialogFactory(
             .setCancelable(false).setView(binding.root)
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 mOnFinishListener.onSet(
-                    binding.textviewTitle.text.toString(),
+                    binding.edittextTitle.text.toString(),
                     LocalDateTime.of(
                         binding.edittextDeadlineDate.date,
                         binding.edittextDeadlineTime.time

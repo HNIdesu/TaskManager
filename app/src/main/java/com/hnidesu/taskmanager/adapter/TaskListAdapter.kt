@@ -1,6 +1,10 @@
 package com.hnidesu.taskmanager.adapter
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -41,6 +45,7 @@ class TaskListAdapter : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
             field = value
             result.dispatchUpdatesTo(this)
         }
+
     var selectedIndex = -1
     var onTaskFinishChangeListener: OnTaskFinishChangeListener? = null
 
@@ -63,6 +68,83 @@ class TaskListAdapter : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
         )
     }
 
+    private fun getDeadlineText(context: Context, deadline: Long): CharSequence? {
+        val current = System.currentTimeMillis()
+        val minutes = (deadline - current) / 60000
+        val sb = SpannableStringBuilder()
+
+        when {
+            minutes < 0 -> {
+                sb.append(context.getString(R.string.deadline_expired))
+                sb.setSpan(
+                    ForegroundColorSpan(Color.parseColor("#757575")),
+                    0,
+                    sb.length,
+                    SpannableStringBuilder.SPAN_INCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            minutes < 1 -> {
+                sb.append(context.getString(R.string.deadline_less_than_one_minute))
+                sb.setSpan(
+                    ForegroundColorSpan(Color.parseColor("#D32F2F")),
+                    0,
+                    sb.length,
+                    SpannableStringBuilder.SPAN_INCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            minutes < 60 -> {
+                sb.append(
+                    String.format(
+                        context.getString(R.string.deadline_remaining_minutes),
+                        minutes
+                    )
+                )
+                sb.setSpan(
+                    ForegroundColorSpan(Color.parseColor("#FBC02D")),
+                    0,
+                    sb.length,
+                    SpannableStringBuilder.SPAN_INCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            minutes < 24 * 60 -> {
+                sb.append(
+                    String.format(
+                        context.getString(R.string.deadline_remaining_hours),
+                        minutes / 60
+                    )
+                )
+                sb.setSpan(
+                    ForegroundColorSpan(Color.parseColor("#388E3C")),
+                    0,
+                    sb.length,
+                    SpannableStringBuilder.SPAN_INCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            minutes < 30 * 24 * 60 -> {
+                sb.append(
+                    String.format(
+                        context.getString(R.string.deadline_remaining_days),
+                        minutes / (24 * 60)
+                    )
+                )
+                sb.setSpan(
+                    ForegroundColorSpan(Color.parseColor("#1976D2")),
+                    0,
+                    sb.length,
+                    SpannableStringBuilder.SPAN_INCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            else -> return null
+        }
+
+        return sb
+    }
+
 
     override fun onBindViewHolder(holder: ViewHolder, p: Int) {
         val item = itemList[p]
@@ -79,11 +161,10 @@ class TaskListAdapter : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
             }
         })
         binding.textviewTitle.text = item.title
-        val deadlineString = Instant.ofEpochMilli(item.deadline).atZone(ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-        binding.textviewDeadline.text = String.format(
+        binding.textviewDeadline.text = getDeadlineText(context, item.deadline) ?: String.format(
             context.getString(R.string.deadline_format),
-            deadlineString
+            Instant.ofEpochMilli(item.deadline).atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         )
         binding.root.setOnClickListener { _ ->
             val intent = Intent(context, EditTaskActivity::class.java)

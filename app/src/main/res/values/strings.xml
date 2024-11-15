@@ -68,4 +68,9 @@
     <string name="hide_finished_task">隐藏已完成任务</string>
     <string name="notification_setting">通知设置</string>
     <string name="user_data_manage">用户数据管理</string>
+    <string name="deadline_expired">已截止</string>
+    <string name="deadline_less_than_one_minute">小于1分钟</string>
+    <string name="deadline_remaining_minutes">剩余%1$d分钟</string>
+    <string name="deadline_remaining_hours">剩余%1$d小时</string>
+    <string name="deadline_remaining_days">剩余%1$d天</string>
 </resources>

@@ -43,7 +43,6 @@ class TaskListFragment : Fragment() {
     }
     private var mFragmentTaskListBinding: FragmentTaskListBinding? = null
     private var mAutoUpdate: Boolean = false
-    private var mRecyclerViewAdapter: TaskListAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,9 +59,7 @@ class TaskListFragment : Fragment() {
         val binding = mFragmentTaskListBinding!!
         mAutoUpdate = false
         val context = requireContext()
-        val adapter = TaskListAdapter(context).also {
-            mRecyclerViewAdapter = it
-        }
+        val adapter = TaskListAdapter()
         adapter.onTaskFinishChangeListener = object : TaskListAdapter.OnTaskFinishChangeListener {
             override fun onFinish(taskItem: TaskEntity?) {
                 if (taskItem == null)
@@ -83,7 +80,7 @@ class TaskListFragment : Fragment() {
         }
 
         binding.recyclerview.apply {
-            setAdapter(mRecyclerViewAdapter)
+            setAdapter(adapter)
             registerForContextMenu(this)
         }
 
@@ -210,7 +207,8 @@ class TaskListFragment : Fragment() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.option_delete -> {
-                val adapter = mRecyclerViewAdapter ?: return false
+                val adapter = mFragmentTaskListBinding?.recyclerview?.adapter as? TaskListAdapter
+                    ?: return false
                 AlertDialog.Builder(requireContext()).setMessage(R.string.if_sure_to_delete)
                     .setNegativeButton(
                         R.string.cancel
@@ -230,7 +228,8 @@ class TaskListFragment : Fragment() {
             }
 
             R.id.option_edit -> {
-                val adapter = mRecyclerViewAdapter ?: return false
+                val adapter = mFragmentTaskListBinding?.recyclerview?.adapter as? TaskListAdapter
+                    ?: return false
                 val selectedIndex = adapter.selectedIndex
                 val selectedItem = adapter.itemList[selectedIndex]
                 SetTaskDialogFactory(
@@ -265,38 +264,36 @@ class TaskListFragment : Fragment() {
     }
 
     private fun update() {
-        val adapter: TaskListAdapter? = mRecyclerViewAdapter
-        if (adapter != null) {
-            val filterChain = FilterChain<TaskEntity>()
-            if (mFilterOption.hideExpiredTask) {
-                filterChain.add(object : Filter<TaskEntity> {
-                    override fun match(t: TaskEntity): Boolean {
-                        return t.deadline > System.currentTimeMillis()
-                    }
-                })
-            }
-            if (mFilterOption.hideFinishedTask) {
-                filterChain.add(object : Filter<TaskEntity> {
-                    override fun match(t: TaskEntity): Boolean {
-                        return t.isFinished == 0
-                    }
-                })
-            }
-            val sortType = if (mFilterOption.reverseSort)
-                SortType.reverse(mFilterOption.sortType)
-            else
-                mFilterOption.sortType
-            val filteredTasks = TaskManager.getTasks(filterChain)
-            val sortedList = when (sortType) {
-                SortType.CreationAsc -> filteredTasks.sortedBy { it.createTime }
-                SortType.CreationDesc -> filteredTasks.sortedByDescending { it.createTime }
-                SortType.ModifiedAsc -> filteredTasks.sortedBy { it.lastModifiedTime }
-                SortType.ModifiedDesc -> filteredTasks.sortedByDescending { it.lastModifiedTime }
-                SortType.DeadlineAsc -> filteredTasks.sortedBy { it.deadline }
-                SortType.DeadlineDesc -> filteredTasks.sortedByDescending { it.deadline }
-            }
-            adapter.itemList = sortedList
+        val adapter = mFragmentTaskListBinding?.recyclerview?.adapter as? TaskListAdapter ?: return
+        val filterChain = FilterChain<TaskEntity>()
+        if (mFilterOption.hideExpiredTask) {
+            filterChain.add(object : Filter<TaskEntity> {
+                override fun match(t: TaskEntity): Boolean {
+                    return t.deadline > System.currentTimeMillis()
+                }
+            })
         }
+        if (mFilterOption.hideFinishedTask) {
+            filterChain.add(object : Filter<TaskEntity> {
+                override fun match(t: TaskEntity): Boolean {
+                    return t.isFinished == 0
+                }
+            })
+        }
+        val sortType = if (mFilterOption.reverseSort)
+            SortType.reverse(mFilterOption.sortType)
+        else
+            mFilterOption.sortType
+        val filteredTasks = TaskManager.getTasks(filterChain)
+        val sortedList = when (sortType) {
+            SortType.CreationAsc -> filteredTasks.sortedBy { it.createTime }
+            SortType.CreationDesc -> filteredTasks.sortedByDescending { it.createTime }
+            SortType.ModifiedAsc -> filteredTasks.sortedBy { it.lastModifiedTime }
+            SortType.ModifiedDesc -> filteredTasks.sortedByDescending { it.lastModifiedTime }
+            SortType.DeadlineAsc -> filteredTasks.sortedBy { it.deadline }
+            SortType.DeadlineDesc -> filteredTasks.sortedByDescending { it.deadline }
+        }
+        adapter.itemList = sortedList
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

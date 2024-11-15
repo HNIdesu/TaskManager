@@ -97,7 +97,7 @@ class CheckDeadlineService : Service() {
             mForegroundNotificationId,
             NotificationCompat.Builder(this, mForegroundChannelId).build()
         )
-        mTimer.scheduleAtFixedRate(mCheckDeadlineTask, 0L, 30000L)
+        mTimer.schedule(mCheckDeadlineTask, 0L, 30000L)
     }
 
     override fun onDestroy() {

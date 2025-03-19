@@ -13,10 +13,11 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.database.TaskEntity
-import com.hnidesu.taskmanager.manager.TaskManager
+import com.hnidesu.taskmanager.manager.DatabaseManager
 import com.hnidesu.taskmanager.service.CheckDeadlineService
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -36,7 +37,9 @@ class SettingFragment : PreferenceFragmentCompat() {
                     context.contentResolver.openOutputStream(data)?.use { outputStream ->
                         val json = JSONObject()
                         json.put("version", 1)
-                        val taskList = TaskManager.getTasks()
+                        val taskList = runBlocking {
+                            DatabaseManager.myDatabase.taskDao.allTasks().first()
+                        }
                         val taskListJsonArray = JSONArray()
                         json.put("tasks", taskListJsonArray)
                         for (task in taskList) {
@@ -98,13 +101,15 @@ class SettingFragment : PreferenceFragmentCompat() {
                         .setCancelable(true)
                         .setPositiveButton(R.string.append) { _, _ ->
                             runBlocking {
-                                TaskManager.addTasks(taskList)
+                                DatabaseManager.myDatabase.taskDao.insertTasks(taskList)
                             }
                             ToastUtil.toastLong(context, R.string.import_succeed)
                         }.setNegativeButton(R.string.override) { _, _ ->
                             runBlocking {
-                                TaskManager.clear()
-                                TaskManager.addTasks(taskList)
+                                DatabaseManager.myDatabase.taskDao.apply {
+                                    clear()
+                                    insertTasks(taskList)
+                                }
                             }
                             ToastUtil.toastLong(context, R.string.import_succeed)
                         }.setOnCancelListener {

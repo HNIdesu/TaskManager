@@ -13,12 +13,12 @@ import android.os.IBinder
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.MainActivity
-import com.hnidesu.taskmanager.base.filter.Filter
-import com.hnidesu.taskmanager.base.filter.FilterChain
-import com.hnidesu.taskmanager.database.TaskEntity
-import com.hnidesu.taskmanager.manager.TaskManager
+import com.hnidesu.taskmanager.manager.DatabaseManager
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.util.Timer
 import java.util.TimerTask
 
@@ -61,13 +61,11 @@ class CheckDeadlineService : Service() {
 
     private inner class CheckDeadlineTask : TimerTask() {
         override fun run() {
-            val tasks= TaskManager.getTasks(FilterChain(object : Filter<TaskEntity> {
-                override fun match(t: TaskEntity): Boolean {
-                    val deadline = t.deadline
-                    val now = System.currentTimeMillis()
-                    return deadline > now && deadline - now <= 600000
-                }
-            }))
+            val now = System.currentTimeMillis()
+            val sql = SupportSQLiteQueryBuilder.builder("tasks").selection("deadline > ? and deadline < ?", arrayOf(now,now+10*60*1000)).create()//十分钟以内进行提醒
+            val tasks= runBlocking {
+                DatabaseManager.myDatabase.taskDao.getTasks(sql).first()
+            }
             val checkDeadlineService = this@CheckDeadlineService
             for (taskItem in tasks) {
                 if (!checkDeadlineService.mLastCheckedTasks.contains(taskItem.createTime)) {

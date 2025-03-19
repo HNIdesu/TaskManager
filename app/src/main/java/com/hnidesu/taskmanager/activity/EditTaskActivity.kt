@@ -11,7 +11,7 @@ import androidx.core.widget.addTextChangedListener
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.databinding.ActivityEditTaskBinding
-import com.hnidesu.taskmanager.manager.TaskManager
+import com.hnidesu.taskmanager.manager.DatabaseManager
 import com.hnidesu.taskmanager.util.HashUtil
 import com.hnidesu.taskmanager.util.LogUtil
 import com.hnidesu.taskmanager.util.ToastUtil
@@ -44,7 +44,7 @@ class EditTaskActivity : AppCompatActivity() {
                 ) { _, _ ->
                     try {
                         runBlocking {
-                            TaskManager.updateTask(
+                            DatabaseManager.myDatabase.taskDao.updateTask(
                                 entity.copy(
                                     content = temp,
                                     lastModifiedTime = System.currentTimeMillis()
@@ -79,8 +79,10 @@ class EditTaskActivity : AppCompatActivity() {
 
         try {
             val taskId = intent.getLongExtra("task_id", 0)
-            val entity = TaskManager.findTask(taskId)!!.also {
-                mEntity = it
+            val entity = runBlocking {
+                DatabaseManager.myDatabase.taskDao.findTask(taskId)!!.also {
+                    mEntity = it
+                }
             }
             val taskTitle = entity.title
             supportActionBar?.title = taskTitle
@@ -102,7 +104,7 @@ class EditTaskActivity : AppCompatActivity() {
                     R.id.option_save -> {
                         val content = binding.edittext.getText().toString()
                         runBlocking {
-                            TaskManager.updateTask(
+                            DatabaseManager.myDatabase.taskDao.updateTask(
                                 entity.copy(
                                     content = content,
                                     lastModifiedTime = System.currentTimeMillis()

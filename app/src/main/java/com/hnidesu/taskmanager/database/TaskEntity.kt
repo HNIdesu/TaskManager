@@ -3,7 +3,6 @@ package com.hnidesu.taskmanager.database
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.io.Serializable
 
 @Entity("tasks")
 data class TaskEntity(
@@ -22,4 +21,4 @@ data class TaskEntity(
     val lastModifiedTime: Long,
     @ColumnInfo(name = "is_encrypted")
     val isEncrypted: Int
-) : Serializable
+)

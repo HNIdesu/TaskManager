@@ -7,8 +7,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.hnidesu.taskmanager.database.MyDatabase
 
 object DatabaseManager{
-    fun getMyDatabase(context: Context): MyDatabase{
-        return Room.databaseBuilder(context, MyDatabase::class.java, "database.db").addMigrations(
+    lateinit var myDatabase: MyDatabase
+    fun init(context: Context){
+        myDatabase = Room.databaseBuilder(context, MyDatabase::class.java, "database.db").addMigrations(
             object : Migration(1,2) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("CREATE TABLE tasks_temp (\n    create_time INTEGER PRIMARY KEY NOT NULL,\n    last_modified_time INTEGER NOT NULL,\n    is_encrypted INTEGER NOT NULL,\n    title TEXT NOT NULL,\n    deadline INTEGER NOT NULL,\n    content TEXT NOT NULL,\n    is_finished INTEGER NOT NULL\n)")

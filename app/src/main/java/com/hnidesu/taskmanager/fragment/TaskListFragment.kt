@@ -13,25 +13,23 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import com.hnidesu.taskmanager.R
 import com.hnidesu.taskmanager.activity.EditTaskActivity
 import com.hnidesu.taskmanager.adapter.TaskListAdapter
 import com.hnidesu.taskmanager.base.SortType
-import com.hnidesu.taskmanager.base.filter.Filter
-import com.hnidesu.taskmanager.base.filter.FilterChain
 import com.hnidesu.taskmanager.database.TaskEntity
 import com.hnidesu.taskmanager.databinding.FragmentTaskListBinding
-import com.hnidesu.taskmanager.eventbus.TaskListChangeEvent
+import com.hnidesu.taskmanager.manager.DatabaseManager
 import com.hnidesu.taskmanager.manager.SettingManager
-import com.hnidesu.taskmanager.manager.TaskManager
 import com.hnidesu.taskmanager.util.ToastUtil
 import com.hnidesu.taskmanager.widget.dialog.SetTaskDialogFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
+import kotlinx.coroutines.withContext
 import org.threeten.bp.Instant
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZoneId
@@ -46,6 +44,7 @@ class TaskListFragment : Fragment() {
     }
     private var mFragmentTaskListBinding: FragmentTaskListBinding? = null
     private var mAutoUpdate: Boolean = false
+    private var mFetchTaskListJob: Job? = null;
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,7 +67,7 @@ class TaskListFragment : Fragment() {
                 if (taskItem == null)
                     return
                 CoroutineScope(Dispatchers.IO).launch {
-                    TaskManager.updateTask(
+                    DatabaseManager.myDatabase.taskDao.updateTask(
                         taskItem.copy(isFinished = 1, lastModifiedTime = System.currentTimeMillis())
                     )
                 }
@@ -78,7 +77,7 @@ class TaskListFragment : Fragment() {
                 if (taskItem == null)
                     return
                 CoroutineScope(Dispatchers.IO).launch {
-                    TaskManager.updateTask(
+                    DatabaseManager.myDatabase.taskDao.updateTask(
                         taskItem.copy(isFinished = 0, lastModifiedTime = System.currentTimeMillis())
                     )
                 }
@@ -112,7 +111,7 @@ class TaskListFragment : Fragment() {
                             0
                         )
                         CoroutineScope(Dispatchers.IO).launch {
-                            TaskManager.addTask(taskEntity)
+                            DatabaseManager.myDatabase.taskDao.insertTask(taskEntity)
                         }
                         ToastUtil.toastShort(context, R.string.add_success)
                         val intent = Intent(context, EditTaskActivity::class.java).apply {
@@ -200,7 +199,6 @@ class TaskListFragment : Fragment() {
         }
         mAutoUpdate = true
         update()
-        EventBus.getDefault().register(this)
     }
 
     override fun onCreateContextMenu(
@@ -232,7 +230,7 @@ class TaskListFragment : Fragment() {
                         val selectedIndex = adapter.selectedIndex
                         val selectedItem = adapter.itemList[selectedIndex]
                         CoroutineScope(Dispatchers.IO).launch {
-                            TaskManager.deleteTask(selectedItem)
+                            DatabaseManager.myDatabase.taskDao.deleteTask(selectedItem)
                         }
                     }.setOnCancelListener { }.create().show()
                 return true
@@ -258,7 +256,7 @@ class TaskListFragment : Fragment() {
                                 lastModifiedTime = System.currentTimeMillis()
                             )
                             CoroutineScope(Dispatchers.IO).launch {
-                                TaskManager.updateTask(newItem)
+                                DatabaseManager.myDatabase.taskDao.updateTask(newItem)
                             }
                         }
                     },
@@ -271,50 +269,44 @@ class TaskListFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        EventBus.getDefault().unregister(this)
-    }
-
     private fun update() {
         val adapter = mFragmentTaskListBinding?.recyclerview?.adapter as? TaskListAdapter ?: return
-        val filterChain = FilterChain<TaskEntity>()
-        if (mFilterOption.hideExpiredTask) {
-            filterChain.add(object : Filter<TaskEntity> {
-                override fun match(t: TaskEntity): Boolean {
-                    return t.deadline > System.currentTimeMillis()
-                }
-            })
-        }
+        mFetchTaskListJob?.cancel()
+        val builder= SupportSQLiteQueryBuilder.builder("tasks")
+        val selections = arrayListOf<String>()
+        val selectionArgs = arrayListOf<String>()
         if (mFilterOption.hideFinishedTask) {
-            filterChain.add(object : Filter<TaskEntity> {
-                override fun match(t: TaskEntity): Boolean {
-                    return t.isFinished == 0
-                }
-            })
+            selections.add("is_finished = 0")
         }
+        if (mFilterOption.hideExpiredTask) {
+            selections.add("deadline > ?")
+            selectionArgs.add(System.currentTimeMillis().toString())
+        }
+        builder.selection(selections.joinToString(" and "),selectionArgs.toArray())
         val sortType = if (mFilterOption.reverseSort)
             SortType.reverse(mFilterOption.sortType)
         else
             mFilterOption.sortType
-        val filteredTasks = TaskManager.getTasks(filterChain)
-        val sortedList = when (sortType) {
-            SortType.CreationAsc -> filteredTasks.sortedBy { it.createTime }
-            SortType.CreationDesc -> filteredTasks.sortedByDescending { it.createTime }
-            SortType.ModifiedAsc -> filteredTasks.sortedBy { it.lastModifiedTime }
-            SortType.ModifiedDesc -> filteredTasks.sortedByDescending { it.lastModifiedTime }
-            SortType.DeadlineAsc -> filteredTasks.sortedBy { it.deadline }
-            SortType.DeadlineDesc -> filteredTasks.sortedByDescending { it.deadline }
+        when(sortType){
+            SortType.CreationAsc -> builder.orderBy("create_time ASC")
+            SortType.CreationDesc -> builder.orderBy("create_time DESC")
+            SortType.ModifiedAsc -> builder.orderBy("last_modified_time ASC")
+            SortType.ModifiedDesc -> builder.orderBy("last_modified_time DESC")
+            SortType.DeadlineAsc -> builder.orderBy("deadline ASC")
+            SortType.DeadlineDesc -> builder.orderBy("deadline DESC")
         }
-        adapter.itemList = sortedList
+        val sql = builder.create()
+        mFetchTaskListJob = CoroutineScope(Dispatchers.IO).launch {
+            DatabaseManager.myDatabase.taskDao.getTasks(sql).collectLatest{
+                withContext(Dispatchers.Main){
+                    adapter.itemList = it
+                }
+            }
+        }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onMessageEvent(event: Any?) {
-        when (event) {
-            is TaskListChangeEvent -> update()
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        mFetchTaskListJob?.cancel()
     }
-
-
 }

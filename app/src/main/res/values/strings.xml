@@ -73,4 +73,5 @@
     <string name="deadline_remaining_minutes">剩余%1$d分钟</string>
     <string name="deadline_remaining_hours">剩余%1$d小时</string>
     <string name="deadline_remaining_days">剩余%1$d天</string>
+    <string name="create_date">创建日期</string>
 </resources>

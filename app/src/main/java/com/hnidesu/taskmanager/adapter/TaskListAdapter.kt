@@ -166,6 +166,8 @@ class TaskListAdapter : RecyclerView.Adapter<TaskListAdapter.ViewHolder>() {
             Instant.ofEpochMilli(item.deadline).atZone(ZoneId.systemDefault())
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         )
+        binding.textviewCreateDate.text = Instant.ofEpochMilli(item.createTime).atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         binding.root.setOnClickListener { _ ->
             val intent = Intent(context, EditTaskActivity::class.java)
             intent.putExtra("task_id", item.createTime)
